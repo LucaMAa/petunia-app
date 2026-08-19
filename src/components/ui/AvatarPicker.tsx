@@ -5,13 +5,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
-  Alert,
   ViewStyle,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Avatar } from './Avatar';
 import { useLocalization } from '../../context/LocalizationContext';
 import { colors, radius, shadow } from '../../styles/theme';
+import { useAlert } from './AlertContext';
 
 interface AvatarPickerProps {
   currentUrl?: string;
@@ -30,13 +30,14 @@ export function AvatarPicker({
 }: AvatarPickerProps) {
   const [isUploading, setIsUploading] = useState(false);
   const { t } = useLocalization();
+  const { showAlert } = useAlert();
 
   async function handlePress() {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        t('access_denied','Accesso negato'),
+      showAlert(
         t('access_denied_msg','Consenti l\'accesso alla galleria nelle impostazioni per cambiare la foto.'),
+        { type: 'error' },
       );
       return;
     }
@@ -59,7 +60,7 @@ export function AvatarPicker({
     try {
       await onPick(uri, fileName, mimeType);
     } catch (e) {
-      Alert.alert(t('error','Errore'), e instanceof Error ? e.message : t('upload_failed','Caricamento fallito'));
+      showAlert(e instanceof Error ? e.message : t('upload_failed','Caricamento fallito'), { type: 'error' });
     } finally {
       setIsUploading(false);
     }

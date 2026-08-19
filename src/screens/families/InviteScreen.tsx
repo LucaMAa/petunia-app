@@ -6,9 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   RefreshControl,
+  Alert,
 } from 'react-native';
+import { useAlert } from '../../components/ui/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FamilyInvite } from '../../types';
 import { familiesApi } from '../../api/families';
@@ -27,6 +28,7 @@ interface Props {
 export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props) {
   const insets = useSafeAreaInsets();
   const { t, formatDate } = useLocalization();
+  const { showAlert } = useAlert();
   const [tab, setTab] = useState<Tab>('received');
 
   const [received, setReceived] = useState<FamilyInvite[]>([]);
@@ -72,7 +74,7 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
       setReceived(prev => prev.filter(i => i.id !== invite.id));
       onInviteResponded(invite.id);
     } catch (e) {
-      Alert.alert('Errore', e instanceof Error ? e.message : 'Riprova');
+      showAlert(e instanceof Error ? e.message : 'Riprova', { type: 'error' });
     } finally {
       setRespondingId(null);
     }
@@ -96,7 +98,7 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
       await familiesApi.cancelInvite(invite.id);
       setSent(prev => prev.filter(i => i.id !== invite.id));
     } catch (e) {
-      Alert.alert('Errore', e instanceof Error ? e.message : 'Riprova');
+      showAlert(e instanceof Error ? e.message : 'Riprova', { type: 'error' });
     } finally {
       setCancellingId(null);
     }

@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert,
+  View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
 } from "react-native";
+import { useAlert } from '../../components/ui/AlertContext';
 import { WebView } from "react-native-webview";
 import * as Location from "expo-location";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -27,6 +28,7 @@ export function MapScreen({ wsRef }: Props) {
   const [locationReady, setLocationReady] = useState(false);
 
   const { reports, isLoading, loadNearby, create, remove, reportAbuse } = useMapReports();
+  const { showAlert } = useAlert();
 
   const [selectedReport, setSelectedReport] = useState<MapReport | null>(null);
   const [showCreateSheet, setShowCreateSheet] = useState(false);
@@ -200,12 +202,12 @@ export function MapScreen({ wsRef }: Props) {
           onClose={() => setSelectedReport(null)}
           onAbuse={async (reason) => {
             try { await reportAbuse(selectedReport.id, reason); }
-            catch (e) { Alert.alert("Errore", e instanceof Error ? e.message : "Riprova"); }
+            catch (e) { showAlert(e instanceof Error ? e.message : "Riprova", { type: 'error' }); }
             setSelectedReport(null);
           }}
           onDelete={async () => {
             try { await remove(selectedReport.id); setSelectedReport(null); }
-            catch (e) { Alert.alert("Errore", e instanceof Error ? e.message : "Non autorizzato"); }
+            catch (e) { showAlert(e instanceof Error ? e.message : "Non autorizzato", { type: 'error' }); }
           }}
         />
       )}

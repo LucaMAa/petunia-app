@@ -42,7 +42,7 @@ export function TabBar({ children, paddingBottom }: TabBarProps) {
 
 const styles = StyleSheet.create({
   tabBarOuter: {
-    backgroundColor: colors.background,
+    backgroundColor: colors.tabBar,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.xs,
     borderTopWidth: 1,
@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
+    borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     padding: 4,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    borderRadius: radius.lg,
+    borderRadius: radius.md,
     gap: 2,
     position: 'relative',
     minHeight: 48,
@@ -70,14 +70,12 @@ const styles = StyleSheet.create({
   tabPill: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: colors.primaryLight,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.primaryMid,
+    borderRadius: radius.md,
   },
   tabIconWrapper: { position: 'relative' },
-  tabIcon: { fontSize: 20, opacity: 0.35 },
+  tabIcon: { fontSize: 18, opacity: 0.5 },
   tabIconActive: { opacity: 1 },
-  tabLabel: { fontSize: 10, color: colors.textMuted, fontWeight: '400' },
+  tabLabel: { fontSize: 11, color: colors.textMuted, fontWeight: '500' },
   tabLabelActive: { color: colors.primaryDeep, fontWeight: '700' },
   tabBadge: {
     position: 'absolute',
@@ -91,5 +89,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 3,
   },
-  tabBadgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
+  tabBadgeText: { fontSize: 9, fontWeight: '800', color: colors.textOnPrimary },
 });

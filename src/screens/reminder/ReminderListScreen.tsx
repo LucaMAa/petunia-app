@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, Switch, Alert, RefreshControl,
+  TouchableOpacity, ActivityIndicator, Switch, RefreshControl, Alert,
 } from 'react-native';
+import { useAlert } from '../../components/ui/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Reminder } from '../../types/reminders';
 import { useReminders } from '../../hooks/useReminders';
@@ -54,6 +55,7 @@ export function ReminderListScreen({
   const insets = useSafeAreaInsets();
   const { t } = useLocalization();
   const { reminders, isLoading, error, load, update, remove } = useReminders(familyId, petId);
+  const { showAlert } = useAlert();
 
   useEffect(() => { load(); }, [familyId]);
 
@@ -70,7 +72,7 @@ export function ReminderListScreen({
         enabled: value,
       });
     } catch (e) {
-      Alert.alert(t('error','Errore'), e instanceof Error ? e.message : t('retry','Riprova'));
+      showAlert(e instanceof Error ? e.message : t('retry','Riprova'), { type: 'error' });
     }
   }
 

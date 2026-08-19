@@ -7,8 +7,8 @@ import {
   Platform,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../components/ui/AlertContext';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -58,6 +58,7 @@ interface FormState {
 export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useLocalization();
+  const { showAlert } = useAlert();
   const isEditing = !!existingPet;
 
   const [form, setForm] = useState<FormState>({
@@ -122,7 +123,7 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
 
   async function handleAvatarPick(uri: string, fileName: string, mimeType: string) {
     if (!savedPet) {
-      Alert.alert(t('save_first','Salva prima'), t('save_first_msg', "Salva l'animale prima di caricare la foto."));
+      showAlert(t('save_first_msg', "Salva l'animale prima di caricare la foto."), { type: 'error' });
       return;
     }
       const updatedFile = await uploadApi.petAvatar(savedPet.id, uri, fileName, mimeType);
@@ -204,7 +205,7 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
                   onPress={() => set('species')(opt.value)}
                   style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text>{label}</Text>
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -225,7 +226,7 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
                   onPress={() => set('gender')(opt.value)}
                   style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text>{label}</Text>
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -282,8 +283,10 @@ const styles = StyleSheet.create({
   avatarHint: { ...typography.caption, color: colors.textMuted, textAlign: 'center' },
   label:      { ...typography.label, marginTop: spacing.sm },
   row:        { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  chip:       { padding: spacing.xs, borderWidth: 1, borderRadius: radius.md },
-  chipSelected: { backgroundColor: colors.primaryLight },
+  chip:       { minHeight: 40, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, justifyContent: 'center', borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, borderRadius: radius.md },
+  chipSelected: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+  chipText: { ...typography.bodySmall, color: colors.text },
+  chipTextSelected: { color: colors.primaryDeep, fontWeight: '700' },
   dateInput:  {
     height: layout.inputHeight,
     justifyContent: 'center',

@@ -1,204 +1,182 @@
-import React, { useRef } from 'react';
+import React, { useRef } from "react";
 import {
-  TouchableOpacity,
-  Text,
   ActivityIndicator,
-  StyleSheet,
-  ViewStyle,
-  TextStyle,
   Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextStyle,
   View,
-} from 'react-native';
-import { colors, radius, typography, spacing, layout, shadow } from '../../styles/theme';
+  ViewStyle,
+} from "react-native";
+import {
+  animation,
+  colors,
+  layout,
+  radius,
+  shadow,
+  spacing,
+  typography,
+} from "../../styles/theme";
 
-type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gold';
-type Size    = 'sm' | 'md' | 'lg';
+type Variant =
+  | "primary"
+  | "secondary"
+  | "outline"
+  | "ghost"
+  | "danger"
+  | "gold";
+type Size = "sm" | "md" | "lg";
 
 interface ButtonProps {
-  label:       string;
-  onPress:     () => void;
-  variant?:    Variant;
-  size?:       Size;
-  loading?:    boolean;
-  disabled?:   boolean;
-  style?:      ViewStyle;
-  textStyle?:  TextStyle;
-  fullWidth?:  boolean;
-  icon?:       React.ReactNode;
-  iconRight?:  React.ReactNode;
+  label: string;
+  onPress: () => void;
+  variant?: Variant;
+  size?: Size;
+  loading?: boolean;
+  disabled?: boolean;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+  fullWidth?: boolean;
+  icon?: React.ReactNode;
+  iconRight?: React.ReactNode;
+  accessibilityLabel?: string;
+  withShadow?: boolean;
 }
 
 export function Button({
   label,
   onPress,
-  variant    = 'primary',
-  size       = 'md',
-  loading    = false,
-  disabled   = false,
+  variant = "primary",
+  size = "md",
+  loading = false,
+  disabled = false,
   style,
   textStyle,
-  fullWidth  = true,
+  fullWidth = true,
   icon,
   iconRight,
+  accessibilityLabel,
+  withShadow = true,
 }: ButtonProps) {
   const scale = useRef(new Animated.Value(1)).current;
-  const isDisabled = disabled || loading;
-
-  function handlePressIn() {
-    Animated.spring(scale, {
-      toValue: 0.965,
+  const inactive = disabled || loading;
+  const press = (value: number) =>
+    Animated.timing(scale, {
+      toValue: value,
+      duration: animation.fast,
       useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
     }).start();
-  }
-
-  function handlePressOut() {
-    Animated.spring(scale, {
-      toValue: 1,
-      useNativeDriver: true,
-      speed: 50,
-      bounciness: 4,
-    }).start();
-  }
-
-  const variantStyle  = variantStyles[variant];
-  const sizeStyle     = sizeStyles[size];
-  const textV         = textVariants[variant];
-  const textS         = textSizes[size];
-
   return (
     <Animated.View
       style={[
-        fullWidth && { width: '100%' },
-        variant === 'primary' && shadow.brand,
-        variant === 'secondary' && shadow.sm,
-        variant === 'danger' && styles.dangerShadow,
+        fullWidth && styles.fullWidth,
+        styles.shadowWrap,
+        withShadow && variant === "primary" && shadow.brand,
         { transform: [{ scale }] },
       ]}
     >
-      <TouchableOpacity
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel ?? label}
+        accessibilityState={{ disabled: inactive, busy: loading }}
+        disabled={inactive}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        disabled={isDisabled}
-        activeOpacity={0.9}
-        style={[
+        onPressIn={() => !inactive && press(0.98)}
+        onPressOut={() => press(1)}
+        style={({ pressed }) => [
           styles.base,
-          variantStyle,
-          sizeStyle,
+          variantStyles[variant],
+          sizeStyles[size],
           fullWidth && styles.fullWidth,
-          isDisabled && styles.disabled,
+          pressed && !inactive && styles.pressed,
+          inactive && styles.disabled,
           style,
         ]}
       >
         {loading ? (
           <ActivityIndicator
+            size="small"
             color={
-              variant === 'outline' || variant === 'ghost'
+              variant === "ghost" ||
+              variant === "outline" ||
+              variant === "secondary"
                 ? colors.primary
                 : colors.textOnPrimary
             }
-            size="small"
           />
         ) : (
           <View style={styles.content}>
-            {icon && <View style={styles.iconLeft}>{icon}</View>}
-            <Text style={[styles.text, textV, textS, textStyle]}>
+            {icon ? <View style={styles.icon}>{icon}</View> : null}
+            <Text
+              style={[
+                styles.text,
+                textVariants[variant],
+                textSizes[size],
+                textStyle,
+              ]}
+            >
               {label}
             </Text>
-            {iconRight && <View style={styles.iconRight}>{iconRight}</View>}
+            {iconRight ? <View style={styles.icon}>{iconRight}</View> : null}
           </View>
         )}
-      </TouchableOpacity>
+      </Pressable>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  shadowWrap: { borderRadius: radius.md },
+  fullWidth: { width: "100%" },
   base: {
+    alignItems: "center",
+    justifyContent: "center",
     borderRadius: radius.md,
-    alignItems:   'center',
-    justifyContent: 'center',
+    minWidth: layout.minTouchTarget,
   },
-  fullWidth: { width: '100%' },
   content: {
-    flexDirection: 'row',
-    alignItems:    'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
   },
-  iconLeft:  {},
-  iconRight: {},
-  text: {
-    letterSpacing: 0.2,
-    textAlign: 'center',
-  },
-  disabled:     { opacity: 0.42 },
-  dangerShadow: {
-    shadowColor:   '#B83232',
-    shadowOffset:  { width: 0, height: 4 },
-    shadowOpacity: 0.28,
-    shadowRadius:  12,
-    elevation: 6,
-  },
+  icon: { alignItems: "center", justifyContent: "center" },
+  text: { textAlign: "center" },
+  pressed: { opacity: 0.9 },
+  disabled: { opacity: 0.48 },
 });
-
 const variantStyles = StyleSheet.create({
-  primary: {
-    backgroundColor: colors.primary,
-    borderWidth: 0,
-  },
+  primary: { backgroundColor: colors.primary },
   secondary: {
     backgroundColor: colors.primaryLight,
-    borderWidth:     1.5,
-    borderColor:     colors.primaryMid,
+    borderWidth: 1,
+    borderColor: colors.primaryMid,
   },
   outline: {
-    backgroundColor: 'transparent',
-    borderWidth:     1.5,
-    borderColor:     colors.primary,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
   },
-  ghost: {
-    backgroundColor: 'transparent',
-    borderWidth:     0,
-  },
-  danger: {
-    backgroundColor: colors.error,
-    borderWidth:     0,
-  },
-  gold: {
-    backgroundColor: colors.accent,
-    borderWidth:     0,
-  },
+  ghost: { backgroundColor: "transparent" },
+  danger: { backgroundColor: colors.error },
+  gold: { backgroundColor: colors.accent },
 });
-
 const sizeStyles = StyleSheet.create({
-  sm: {
-    height:          layout.buttonHeightSm,
-    paddingHorizontal: spacing.md,
-  },
-  md: {
-    height:          layout.buttonHeightMd,
-    paddingHorizontal: spacing.lg,
-  },
-  lg: {
-    height:          layout.buttonHeightLg,
-    paddingHorizontal: spacing.xl,
-  },
+  sm: { height: layout.buttonHeightSm, paddingHorizontal: spacing.md },
+  md: { height: layout.buttonHeightMd, paddingHorizontal: spacing.lg },
+  lg: { height: layout.buttonHeightLg, paddingHorizontal: spacing.xl },
 });
-
 const textVariants = StyleSheet.create({
-  primary:   { color: colors.textOnPrimary },
+  primary: { color: colors.textOnPrimary },
   secondary: { color: colors.primaryDeep },
-  outline:   { color: colors.primary },
-  ghost:     { color: colors.primary },
-  danger:    { color: colors.textOnPrimary },
-  gold:      { color: '#FFF8ED' },
+  outline: { color: colors.primaryDeep },
+  ghost: { color: colors.primary },
+  danger: { color: colors.textOnPrimary },
+  gold: { color: colors.textOnPrimary },
 });
-
 const textSizes = StyleSheet.create({
-  sm: { ...typography.body, fontSize: 13, fontWeight: '600' },
-  md: { ...typography.body, fontSize: 15, fontWeight: '600' },
-  lg: { ...typography.body, fontSize: 16, fontWeight: '700' },
+  sm: { ...typography.label, fontSize: 12 },
+  md: { ...typography.bodyMedium, fontSize: 14 },
+  lg: { ...typography.bodyMedium, fontSize: 16, fontWeight: "600" },
 });

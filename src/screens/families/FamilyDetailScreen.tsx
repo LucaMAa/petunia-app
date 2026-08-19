@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet,
   TouchableOpacity, ActivityIndicator, Alert,
 } from 'react-native';
+import { useAlert } from '../../components/ui/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Family, Pet } from '../../types';
 import { familiesApi } from '../../api/families';
@@ -28,6 +29,7 @@ export function FamilyDetailScreen({ familyId, onBack, onEdit, onDelete, onOpenR
   const insets = useSafeAreaInsets();
   const { pets, load: loadPets } = usePets();
   const { user } = useAuth();
+  const { showAlert } = useAlert();
   const [family, setFamily] = useState<Family | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export function FamilyDetailScreen({ familyId, onBack, onEdit, onDelete, onOpenR
       await familiesApi.assignPet(familyId, petId);
       await load();
     } catch (e) {
-      Alert.alert('Errore', e instanceof Error ? e.message : 'Assegnazione fallita');
+      showAlert(e instanceof Error ? e.message : 'Assegnazione fallita', { type: 'error' });
     }
   }
 
@@ -153,7 +155,7 @@ export function FamilyDetailScreen({ familyId, onBack, onEdit, onDelete, onOpenR
             const isMe = member.user_id === user?.id;
             return (
               <View key={member.id} style={styles.memberRow}>
-                <Avatar name={name} size={40} />
+                <Avatar name={name} uri={member.user?.avatar_file_id ?? undefined} size={40} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.memberName}>{name}{isMe ? ' (tu)' : ''}</Text>
                   <Text style={styles.memberRole}>{member.role === 'owner' ? '👑 Proprietario' : 'Membro'}</Text>

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { useAlert } from '../../components/ui/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
 import { useLocalization } from '../../context/LocalizationContext';
@@ -26,6 +27,7 @@ export function ProfileScreen() {
   const { t } = useLocalization();
   const insets = useSafeAreaInsets();
   const [section, setSection] = useState<Section>('view');
+  const { showAlert } = useAlert();
 
   if (!user) return null;
 
@@ -86,19 +88,21 @@ export function ProfileScreen() {
         />
       )}
 
-      {section === 'changePassword' && (
-        <ChangePasswordSection
-          onSuccess={() => setSection('view')}
-          onCancel={goTo('view')}
-        />
-      )}
+          {section === 'changePassword' && (
+            <ChangePasswordSection
+              onSuccess={() => setSection('view')}
+              onCancel={goTo('view')}
+              showAlert={showAlert}
+            />
+          )}
 
-      {section === 'changeEmail' && (
-        <RequestEmailChangeSection
-          onSuccess={() => setSection('view')}
-          onCancel={goTo('view')}
-        />
-      )}
+          {section === 'changeEmail' && (
+            <RequestEmailChangeSection
+              onSuccess={() => setSection('view')}
+              onCancel={goTo('view')}
+              showAlert={showAlert}
+            />
+          )}
     </ScrollView>
   );
 }
@@ -204,9 +208,11 @@ function EditProfileSection({
 function ChangePasswordSection({
   onSuccess,
   onCancel,
+  showAlert,
 }: {
   onSuccess: () => void;
   onCancel: () => void;
+  showAlert: (message: string, options?: any) => void;
 }) {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -221,9 +227,9 @@ function ChangePasswordSection({
     if (next !== confirm) { setError(t('passwords_must_match','Passwords do not match')); return; }
     setIsLoading(true);
     setError(null);
-    try {
+      try {
       await profileApi.changePassword({ current_password: current, new_password: next });
-      Alert.alert(t('done','Done'), t('password_updated','Password updated successfully.'));
+      showAlert(t('password_updated','Password updated successfully.'), { type: 'success' });
       onSuccess();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('password_update_failed','Failed to update password'));
@@ -248,9 +254,11 @@ function ChangePasswordSection({
 function RequestEmailChangeSection({
   onSuccess,
   onCancel,
+  showAlert,
 }: {
   onSuccess: () => void;
   onCancel: () => void;
+  showAlert: (message: string, options?: any) => void;
 }) {
   const [newEmail, setNewEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -263,7 +271,7 @@ function RequestEmailChangeSection({
     setError(null);
     try {
       await profileApi.requestEmailChange({ new_email: newEmail.trim().toLowerCase() });
-      Alert.alert(t('check_inbox','Check your inbox'), t('check_inbox_msg', `We've sent a confirmation link to ${newEmail}.`));
+      showAlert(t('check_inbox_msg', `We've sent a confirmation link to ${newEmail}.`), { type: 'success' });
       onSuccess();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to request email change');

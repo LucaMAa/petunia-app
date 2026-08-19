@@ -1,29 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Linking,
-} from 'react-native';
-
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
-import { Family, Pet } from '../../types';
-import { petsApi } from '../../api/pets';
-import { uploadApi } from '../../api/uploads';
-import { Card } from '../../components/ui/Card';
-import { Avatar } from '../../components/ui/Avatar';
-import { Button } from '../../components/ui/Button';
-import { ErrorBanner } from '../../components/ui/ErrorBanner';
-
-import { colors, spacing, typography, radius, shadow } from '../../styles/theme';
-import { useLocalization } from '../../context/LocalizationContext';
-import { FamilyPickerModal } from '../families/FamilyPickerModal';
-
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Family, Pet } from "../../types";
+import { petsApi } from "../../api/pets";
+import { uploadApi } from "../../api/uploads";
+import { Avatar, Button, Card, ErrorBanner } from "../../components/ui";
+import { FamilyPickerModal } from "../families/FamilyPickerModal";
+import {
+  colors,
+  layout,
+  radius,
+  spacing,
+  typography,
+} from "../../styles/theme";
 interface Props {
   petId: string;
   onEdit: (pet: Pet) => void;
@@ -32,229 +30,305 @@ interface Props {
   onOpenReminders: (family: Family) => void;
   onOpenDocuments: () => void;
 }
-
-
-
-function calculateAge(d: string | null): string {
-  if (!d) return '';
-  const birth = new Date(d);
-  const now = new Date();
-  const months =
-    (now.getFullYear() - birth.getFullYear()) * 12 +
-    (now.getMonth() - birth.getMonth());
-
-  if (months < 1) return 'meno di un mese';
-  if (months < 12) return `${months} mesi`;
-  const y = Math.floor(months / 12);
-  return `${y} anni`;
-}
-
-const SPECIES_EMOJI: Record<string, string> = {
-  dog: '🐕',
-  cat: '🐈',
-  bird: '🦜',
-  rabbit: '🐇',
-  fish: '🐟',
-  hamster: '🐹',
-  reptile: '🦎',
-};
-
-export function PetDetailScreen({ petId, onEdit, onBack, onDelete, onOpenReminders, onOpenDocuments }: Props) {
-  const insets = useSafeAreaInsets();
-  const { t, formatDate } = useLocalization();
-
+export function PetDetailScreen({
+  petId,
+  onEdit,
+  onBack,
+  onDelete,
+  onOpenReminders,
+  onOpenDocuments,
+}: Props) {
+  const inset = useSafeAreaInsets();
   const [pet, setPet] = useState<Pet | null>(null);
-  const [docs, setDocs] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showFamilyPicker, setShowFamilyPicker] = useState(false);
-
+  const [docs, setDocs] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [picker, setPicker] = useState(false);
+  const [tab, setTab] = useState<"overview" | "health" | "activity">(
+    "overview",
+  );
   useEffect(() => {
-    load();
-  }, [petId]);
-
-  async function load() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const p = await petsApi.get(petId);
-      setPet(p);
+    (async () => {
+      setLoading(true);
       try {
-        const remoteDocs = await uploadApi.listPetDocuments(petId);
-        setDocs(remoteDocs || []);
-      } catch (e) {
+        const item = await petsApi.get(petId);
+        setPet(item);
+        try {
+          setDocs((await uploadApi.listPetDocuments(petId)).length);
+        } catch {}
+      } finally {
+        setLoading(false);
       }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Errore nel caricamento');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  function confirmDelete() {
-    if (!pet) return;
+    })();
+  }, [petId]);
+  if (loading)
+    return (
+      <View style={s.center}>
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  if (!pet)
+    return (
+      <View style={s.center}>
+        <ErrorBanner message="Non siamo riusciti a caricare questo profilo." />
+        <Button label="Torna agli animali" onPress={onBack} fullWidth={false} />
+      </View>
+    );
+  const askDelete = () =>
     Alert.alert(
-      t('confirm_delete_title','Elimina %s?').replace('%s', pet.name),
-      t('confirm_delete_msg','Questa azione non può essere annullata.'),
+      `Eliminare ${pet.name}?`,
+      "Questa azione non può essere annullata.",
       [
-        { text: t('cancel','Annulla'), style: 'cancel' },
+        { text: "Annulla", style: "cancel" },
         {
-          text: t('delete','Elimina'),
-          style: 'destructive',
+          text: "Elimina",
+          style: "destructive",
           onPress: async () => {
             await petsApi.delete(petId);
             onDelete();
           },
         },
-      ]
+      ],
     );
-  }
-
-  if (isLoading) {
-    return (
-      <View style={[styles.safe, { paddingTop: insets.top }]}>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.primary} />
+  return (
+    <ScrollView
+      style={s.safe}
+      contentContainerStyle={[
+        s.content,
+        { paddingBottom: inset.bottom + layout.tabBarHeight + spacing.xl },
+      ]}
+    >
+      <View style={s.top}>
+        <Pressable onPress={onBack} style={s.back}>
+          <Ionicons name="chevron-back" color={colors.primary} size={18} />
+          <Text style={s.backText}>Animali</Text>
+        </Pressable>
+        <Button
+          label="Modifica"
+          onPress={() => onEdit(pet)}
+          variant="ghost"
+          fullWidth={false}
+          size="sm"
+        />
+      </View>
+      <View style={s.hero}>
+        <Avatar
+          name={pet.name}
+          uri={pet.avatar_file_id ?? undefined}
+          size={96}
+        />
+        <View style={{ flex: 1 }}>
+          <Text style={s.name}>{pet.name}</Text>
+          <Text style={s.meta}>
+            {[pet.species, pet.breed].filter(Boolean).join(" · ")}
+          </Text>
         </View>
       </View>
-    );
-  }
-
-  if (error || !pet) {
-    return (
-      <View style={[styles.safe, { paddingTop: insets.top }]}>
-        <View style={styles.center}>
-          <ErrorBanner message={error ?? 'Animale non trovato'} />
+      <View style={s.tabs}>
+        {(["overview", "health", "activity"] as const).map((key) => (
+          <Pressable
+            key={key}
+            onPress={() => setTab(key)}
+            style={[s.tab, tab === key && s.tabActive]}
+          >
+            <Text style={[s.tabText, tab === key && s.tabTextActive]}>
+              {key === "overview"
+                ? "Panoramica"
+                : key === "health"
+                  ? "Salute"
+                  : "Attività"}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      {tab === "overview" ? (
+        <>
+          <Card variant="medical" style={s.panel}>
+            <Text style={s.kicker}>Stato salute</Text>
+            <Text style={s.panelTitle}>Nessuna scadenza imminente</Text>
+            <Text style={s.panelText}>
+              Documenti e promemoria aiutano a tenere ordinata la cura di{" "}
+              {pet.name}.
+            </Text>
+            <Button
+              label="Gestisci promemoria"
+              onPress={() => setPicker(true)}
+              variant="secondary"
+              fullWidth={false}
+              size="sm"
+            />
+          </Card>
+          <Row
+            icon="document-text-outline"
+            title="Documenti sanitari"
+            value={docs ? `${docs} documenti salvati` : "Nessun documento"}
+            onPress={onOpenDocuments}
+          />
+          <Row
+            icon="notifications-outline"
+            title="Promemoria"
+            value="Cure e attività"
+            onPress={() => setPicker(true)}
+          />
+        </>
+      ) : tab === "health" ? (
+        <View style={s.empty}>
+          <Text style={s.sectionTitle}>Salute</Text>
+          <Text style={s.emptyText}>
+            Il backend non espone ancora vaccinazioni, visite, farmaci o
+            allergie come dati separati. Puoi utilizzare i documenti e i
+            promemoria disponibili.
+          </Text>
           <Button
-            label="Indietro"
-            onPress={onBack}
-            variant="outline"
-            style={{ marginTop: spacing.md, width: 160 }}
+            label="Apri documenti"
+            onPress={onOpenDocuments}
+            variant="secondary"
+            fullWidth={false}
+          />
+          <Button
+            label="Promemoria"
+            onPress={() => setPicker(true)}
+            variant="ghost"
+            fullWidth={false}
           />
         </View>
-      </View>
-    );
-  }
-
-  const age = calculateAge(pet.birth_date);
-  const emoji = SPECIES_EMOJI[pet.species.toLowerCase()] ?? '🐾';
-
-  const avatarSource = pet.avatar?.id ?? pet.avatar_file_id ?? pet.avatar_url ?? undefined;
-
-  return (
-    <View style={[styles.safe, { paddingTop: insets.top }]}>
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={[
-          styles.content,
-          { paddingBottom: insets.bottom + spacing.xl },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* NAV */}
-        <View style={styles.nav}>
-          <TouchableOpacity onPress={onBack} style={styles.navBtn}>
-            <Text style={styles.navBack}>‹</Text>
-            <Text style={styles.navLabel}>{t('back','Indietro')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => onEdit(pet)} style={styles.editBtn}>
-            <Text style={styles.editText}>{t('edit','Modifica')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* HERO */}
-        <View style={styles.hero}>
-          <View style={styles.avatarBox}>
-            {avatarSource ? (
-              <Avatar uri={avatarSource} size={96} name={pet.name} />
-            ) : (
-              <Text style={styles.emoji}>{emoji}</Text>
-            )}
-          </View>
-          <Text style={styles.name}>{pet.name}</Text>
-          <Text style={styles.sub}>
-            {pet.species} {pet.breed ? `• ${pet.breed}` : ''}
+      ) : (
+        <View style={s.empty}>
+          <Text style={s.sectionTitle}>Attività</Text>
+          <Text style={s.emptyText}>
+            Non esiste ancora un activity log per animale nel backend. Quando
+            sarà disponibile, verrà mostrato qui.
           </Text>
-          {age ? <Text style={styles.age}>🎂 {age}</Text> : null}
         </View>
-
-        {/* DETAILS */}
-        <Card style={styles.card}>
-          <Text style={styles.title}>{t('details','Dettagli')}</Text>
-          <DetailItem icon="🐾" label={t('species_label','Specie')} value={pet.species} />
-          <DetailItem icon="🏷" label={t('breed_label','Razza')} value={pet.breed || '—'} />
-          <DetailItem icon="⚥" label={t('gender_label','Sesso')} value={pet.gender || '—'} />
-          <DetailItem icon="📅" label={t('birthdate_label','Nascita')} value={formatDate(pet.birth_date ?? undefined)} />
-        </Card>
-
-        <Button
-          label="🔔 Promemoria"
-          onPress={() => setShowFamilyPicker(true)}
-          variant="secondary"
-          style={{ marginBottom: spacing.sm }}
-        />
-        <FamilyPickerModal
-          visible={showFamilyPicker}
-          petId={petId}
-          onClose={() => setShowFamilyPicker(false)}
-          onSelect={(family) => {
-            setShowFamilyPicker(false);
-            onOpenReminders(family);
-          }}
-        />
-        <Card style={{ padding: 16, alignItems: 'stretch' }}>
-          <Text style={{ ...typography.h3, marginBottom: spacing.xs }}>{t('documents','Documenti')}</Text>
-          <Text style={{ ...typography.body, color: colors.textSecondary, marginBottom: spacing.sm }}>{t('documents_summary','Visualizza, aggiungi e gestisci i documenti del tuo animale')}</Text>
-          <Button label={t('open_documents','Apri documenti')} onPress={() => onOpenDocuments()} />
-        </Card>
-
-        <View style={styles.danger}>
-          <Button label="🗑 Elimina animale" onPress={confirmDelete} variant="danger" />
-        </View>
-      </ScrollView>
-    </View>
+      )}
+      <Pressable onPress={askDelete} style={s.delete}>
+        <Ionicons name="trash-outline" color={colors.error} size={18} />
+        <Text style={s.deleteText}>Elimina profilo animale</Text>
+      </Pressable>
+      <FamilyPickerModal
+        visible={picker}
+        petId={petId}
+        onClose={() => setPicker(false)}
+        onSelect={(family) => {
+          setPicker(false);
+          onOpenReminders(family);
+        }}
+      />
+    </ScrollView>
   );
 }
-
-function DetailItem({ icon, label, value }: { icon: string; label: string; value: string }) {
+function Row({
+  icon,
+  title,
+  value,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  value: string;
+  onPress: () => void;
+}) {
   return (
-    <View style={di.row}>
-      <Text style={di.icon}>{icon}</Text>
-      <View style={{ flex: 1 }}>
-        <Text style={di.label}>{label}</Text>
-        <Text style={di.value}>{value}</Text>
+    <Pressable onPress={onPress} style={s.row}>
+      <View style={s.icon}>
+        <Ionicons name={icon} size={18} color={colors.primary} />
       </View>
-    </View>
+      <View style={{ flex: 1 }}>
+        <Text style={s.rowTitle}>{title}</Text>
+        <Text style={s.rowValue}>{value}</Text>
+      </View>
+      <Ionicons name="chevron-forward" color={colors.textMuted} size={18} />
+    </Pressable>
   );
 }
-
-const di = StyleSheet.create({
-  row:   { flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.xs },
-  icon:  { fontSize: 16 },
-  label: { ...typography.caption, color: colors.textMuted },
-  value: { ...typography.bodyMedium },
-});
-
-const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.background },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
-  content: { paddingHorizontal: spacing.lg, gap: spacing.md },
-
-  nav: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.sm },
-  navBtn:   { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  navBack:  { fontSize: 22, color: colors.primary },
-  navLabel: { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
-  editBtn:  { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, backgroundColor: colors.primaryLight, borderRadius: radius.pill },
-  editText: { color: colors.primaryDeep, fontWeight: '700' },
-
-  hero:      { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.md },
-  avatarBox: { width: 100, height: 100, borderRadius: radius.xxl, backgroundColor: colors.primaryLight, alignItems: 'center', justifyContent: 'center' },
-  emoji:     { fontSize: 52 },
-  name:      { ...typography.h1, textAlign: 'center' },
-  sub:       { ...typography.body, color: colors.textSecondary, textTransform: 'capitalize' },
-  age:       { ...typography.bodySmall, color: colors.textMuted },
-
-  card:   { gap: spacing.xs },
-  title:  { ...typography.h3 },
-  danger: { marginTop: spacing.sm },
+const s = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.background },
+  content: {
+    padding: spacing.xl,
+    maxWidth: 900,
+    alignSelf: "center",
+    width: "100%",
+  },
+  center: {
+    flex: 1,
+    gap: spacing.lg,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: spacing.xl,
+    backgroundColor: colors.background,
+  },
+  top: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: spacing.xxl,
+  },
+  back: { minHeight: 44, flexDirection: "row", alignItems: "center" },
+  backText: { ...typography.label, color: colors.primary },
+  hero: {
+    flexDirection: "row",
+    gap: spacing.lg,
+    alignItems: "center",
+    marginBottom: spacing.xl,
+  },
+  name: { ...typography.display },
+  meta: {
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.xs,
+    textTransform: "capitalize",
+  },
+  status: {
+    ...typography.caption,
+    color: colors.warning,
+    marginTop: spacing.sm,
+  },
+  tabs: {
+    flexDirection: "row",
+    gap: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    marginBottom: spacing.xl,
+  },
+  tab: {
+    minHeight: 44,
+    justifyContent: "center",
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+  },
+  tabActive: { borderBottomColor: colors.primary },
+  tabText: { ...typography.label, color: colors.textMuted },
+  tabTextActive: { color: colors.primary },
+  panel: { gap: spacing.sm, marginBottom: spacing.md },
+  kicker: { ...typography.overline },
+  panelTitle: { ...typography.h2 },
+  panelText: { ...typography.bodySmall, marginBottom: spacing.sm },
+  row: {
+    minHeight: 72,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  icon: {
+    height: 36,
+    width: 36,
+    borderRadius: radius.sm,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rowTitle: { ...typography.bodyMedium },
+  rowValue: { ...typography.caption, marginTop: spacing.xxs },
+  empty: { gap: spacing.md, paddingVertical: spacing.xl },
+  sectionTitle: { ...typography.h3 },
+  emptyText: { ...typography.bodySmall, color: colors.textSecondary },
+  delete: {
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.xxl,
+  },
+  deleteText: { ...typography.label, color: colors.error },
 });

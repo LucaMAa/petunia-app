@@ -59,7 +59,6 @@ export function PetCard({ pet, onPress, onDelete }: PetCardProps) {
         {/* Left accent bar */}
         <View style={[styles.accentBar, { backgroundColor: bg }]} />
 
-        {/* Avatar / emoji */}
         <View style={[styles.avatarBox, { backgroundColor: bg }]}>
           {avatarSource ? (
             <Avatar uri={avatarSource} size={52} shape="rounded" name={pet.name} />

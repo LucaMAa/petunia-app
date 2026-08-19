@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Linking, ActivityIndicator, Image, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking, ActivityIndicator, Image, Modal } from 'react-native';
 import { Card } from './Card';
 import { Button } from './Button';
 import { colors, spacing, typography, radius, shadow } from '../../styles/theme';
@@ -7,6 +7,7 @@ import { useAuthenticatedImageSource } from '../../hooks/useAuthenticatedUrls';
 import { uploadApi } from '../../api/uploads';
 import { getAuthenticatedFileUrl } from '../../api/client';
 import { useLocalization } from '../../context/LocalizationContext';
+import { useAlert } from './AlertContext';
 
 interface DocumentRecord {
   id?: string;
@@ -25,6 +26,7 @@ export function DocumentsSection({
   onUploaded?: () => void;
 }) {
   const { t } = useLocalization();
+  const { showAlert } = useAlert();
   const [isUploading, setIsUploading] = useState(false);
   const [localDocs, setLocalDocs] = useState<DocumentRecord[]>(docs || []);
   const [urlMap, setUrlMap] = useState<Record<string, string>>({});
@@ -116,10 +118,10 @@ export function DocumentsSection({
           }
         }
         setLocalDocs(prev => [uploaded as DocumentRecord, ...prev]);
-        Alert.alert(t('done','Fatto'), t('upload_success','Documento caricato.'));
+        showAlert(t('upload_success','Documento caricato.'), { type: 'success' });
         if (onUploaded) await onUploaded();
       } catch (uploadErr) {
-        Alert.alert(t('error','Errore'), uploadErr instanceof Error ? uploadErr.message : t('upload_failed','Caricamento fallito'));
+        showAlert(uploadErr instanceof Error ? uploadErr.message : t('upload_failed','Caricamento fallito'), { type: 'error' });
       }
     } catch (e) {
       try {
@@ -141,13 +143,13 @@ export function DocumentsSection({
             }
           }
           setLocalDocs(prev => [uploadedImg as DocumentRecord, ...prev]);
-          Alert.alert(t('done','Fatto'), t('upload_success','Documento caricato.'));
+          showAlert(t('upload_success','Documento caricato.'), { type: 'success' });
           if (onUploaded) await onUploaded();
         } catch (uploadErr) {
-          Alert.alert(t('error','Errore'), uploadErr instanceof Error ? uploadErr.message : t('upload_failed','Caricamento fallito'));
+          showAlert(uploadErr instanceof Error ? uploadErr.message : t('upload_failed','Caricamento fallito'), { type: 'error' });
         }
       } catch (imgErr) {
-        Alert.alert(t('error','Errore'), imgErr instanceof Error ? imgErr.message : t('upload_failed','Caricamento fallito'));
+        showAlert(imgErr instanceof Error ? imgErr.message : t('upload_failed','Caricamento fallito'), { type: 'error' });
       }
     } finally {
       setIsUploading(false);
@@ -161,8 +163,11 @@ export function DocumentsSection({
         let url = d.url ?? (d.id ? urlMap[d.id] : undefined);
         if (!url && d.id) {
           try {
-            url = await getAuthenticatedFileUrl(d.id);
-            setUrlMap(prev => ({ ...prev, [d.id as string]: url }));
+            const resolvedUrl = await getAuthenticatedFileUrl(d.id);
+            if (resolvedUrl) {
+              url = resolvedUrl;
+              setUrlMap(prev => ({ ...prev, [d.id as string]: resolvedUrl }));
+            }
           } catch (e) {
           }
         }
@@ -181,9 +186,9 @@ export function DocumentsSection({
         await Linking.openURL(url);
         return;
       }
-      Alert.alert(t('error','Errore'), t('open_failed','Impossibile aprire il file'));
+      showAlert(t('open_failed','Impossibile aprire il file'), { type: 'error' });
     } catch (e) {
-      Alert.alert(t('error','Errore'), t('open_failed','Impossibile aprire il file'));
+      showAlert(t('open_failed','Impossibile aprire il file'), { type: 'error' });
     }
   }
 
@@ -222,8 +227,8 @@ export function DocumentsSection({
                 try {
                   const url = d.url ?? (d.id ? await getAuthenticatedFileUrl(d.id) : undefined);
                   if (url) await Linking.openURL(url);
-                } catch (e) {
-                  Alert.alert(t('error','Errore'), t('open_failed','Impossibile aprire il file'));
+                  } catch (e) {
+                  showAlert(t('open_failed','Impossibile aprire il file'), { type: 'error' });
                 }
               }}>
                 <Text style={styles.actionText}>{t('download','Scarica')}</Text>

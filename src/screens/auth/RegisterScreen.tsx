@@ -7,8 +7,8 @@ import {
   Platform,
   StyleSheet,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
+import { useAlert } from '../../components/ui/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { authApi } from '../../api/auth';
 import { Button } from '../../components/ui/Button';
@@ -33,6 +33,7 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 
 export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
   const insets = useSafeAreaInsets();
+  const { showAlert } = useAlert();
   const [form, setForm] = useState<FormState>({
     first_name: '',
     last_name: '',
@@ -72,9 +73,7 @@ export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
-      Alert.alert('Account created!', 'You can now sign in.', [
-        { text: 'Sign in', onPress: onSuccess },
-      ]);
+      showAlert('Account created! You can now sign in.', { actionLabel: 'Sign in', onAction: onSuccess, type: 'success' });
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Registration failed';
       if (msg.includes('already')) setError('An account with this email already exists.');
