@@ -1,38 +1,23 @@
-import React from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { Avatar } from "./Avatar";
-import {
-  colors,
-  layout,
-  radius,
-  spacing,
-  typography,
-} from "../../styles/theme";
+import React from 'react';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { Avatar } from './Avatar';
+import { colors, layout, radius, spacing, typography } from '../../styles/theme';
+import { useLocalization } from '../../context/LocalizationContext';
 
-export type AppDestination =
-  | "overview"
-  | "pets"
-  | "map"
-  | "families"
-  | "profile";
+export type AppDestination = 'overview' | 'pets' | 'map' | 'activities' | 'families' | 'profile';
 const items: {
   key: AppDestination;
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
 }[] = [
-  { key: "overview", label: "Home", icon: "home-outline" },
-  { key: "pets", label: "Animali", icon: "paw-outline" },
-  { key: "map", label: "Mappa", icon: "map-outline" },
-  { key: "families", label: "Famiglia", icon: "people-outline" },
-  { key: "profile", label: "Profilo", icon: "person-outline" },
+  { key: 'overview', label: 'Home', icon: 'home-outline' },
+  { key: 'pets', label: 'Animali', icon: 'paw-outline' },
+  { key: 'map', label: 'Mappa', icon: 'map-outline' },
+  { key: 'activities', label: 'Attività', icon: 'walk-outline' },
+  { key: 'families', label: 'Famiglia', icon: 'people-outline' },
+  { key: 'profile', label: 'Profilo', icon: 'person-outline' },
 ];
 interface Props {
   active: AppDestination;
@@ -56,16 +41,19 @@ export function AppShell({
 }: Props) {
   const desktop = useWindowDimensions().width >= 900;
   const insets = useSafeAreaInsets();
+  const { t } = useLocalization();
   const title =
-    active === "overview"
-      ? "La tua giornata"
-      : active === "pets"
-        ? "I tuoi animali"
-        : active === "families"
-          ? "Spazio famiglia"
-          : active === "map"
-            ? "Mappa condivisa"
-            : "Il mio profilo";
+    active === 'overview'
+      ? t('overview_title')
+      : active === 'pets'
+        ? t('pets_title')
+        : active === 'families'
+          ? t('families_title')
+          : active === 'map'
+            ? t('map_title')
+            : active === 'activities'
+              ? 'Attività'
+              : t('profile_title');
   return (
     <View style={[styles.app, !desktop && styles.appMobile]}>
       {desktop ? (
@@ -79,9 +67,7 @@ export function AppShell({
       <View style={[styles.main, !desktop && { paddingTop: insets.top }]}>
         <View style={styles.topbar}>
           <View>
-            <Text style={styles.kicker}>
-              {items.find((item) => item.key === active)?.label}
-            </Text>
+            <Text style={styles.kicker}>{items.find((item) => item.key === active)?.label}</Text>
             <Text style={styles.title}>{title}</Text>
           </View>
           <View style={styles.actions}>
@@ -91,15 +77,11 @@ export function AppShell({
               onPress={onNotifications}
               style={styles.notice}
             >
-              <Ionicons
-                name="notifications-outline"
-                color={colors.textSecondary}
-                size={20}
-              />
+              <Ionicons name="notifications-outline" color={colors.textSecondary} size={20} />
               {notificationCount ? (
                 <View style={styles.badge}>
                   <Text style={styles.badgeText}>
-                    {notificationCount > 9 ? "9+" : notificationCount}
+                    {notificationCount > 9 ? '9+' : notificationCount}
                   </Text>
                 </View>
               ) : null}
@@ -109,12 +91,7 @@ export function AppShell({
         <View style={styles.content}>{children}</View>
       </View>
       {!desktop ? (
-        <View
-          style={[
-            styles.mobileNav,
-            { paddingBottom: Math.max(insets.bottom, spacing.sm) },
-          ]}
-        >
+        <View style={[styles.mobileNav, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
           {items.map((item) => (
             <NavItem
               key={item.key}
@@ -134,7 +111,7 @@ function Sidebar({
   onNavigate,
   userName,
   userAvatar,
-}: Pick<Props, "active" | "onNavigate" | "userName" | "userAvatar">) {
+}: Pick<Props, 'active' | 'onNavigate' | 'userName' | 'userAvatar'>) {
   return (
     <View style={styles.sidebar}>
       <View style={styles.brand}>
@@ -153,11 +130,11 @@ function Sidebar({
           />
         ))}
       </View>
-      <Pressable onPress={() => onNavigate("profile")} style={styles.account}>
-        <Avatar name={userName ?? ""} uri={userAvatar} size={36} />
+      <Pressable onPress={() => onNavigate('profile')} style={styles.account}>
+        <Avatar name={userName ?? ''} uri={userAvatar} size={36} />
         <View style={{ flex: 1 }}>
           <Text numberOfLines={1} style={styles.accountName}>
-            {userName ?? "Account"}
+            {userName ?? 'Account'}
           </Text>
           <Text style={styles.accountRole}>Impostazioni</Text>
         </View>
@@ -182,11 +159,7 @@ function NavItem({
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       onPress={onPress}
-      style={[
-        styles.navItem,
-        compact && styles.compact,
-        active && styles.navActive,
-      ]}
+      style={[styles.navItem, compact && styles.compact, active && styles.navActive]}
     >
       <Ionicons
         name={item.icon}
@@ -195,11 +168,7 @@ function NavItem({
       />
       <Text
         numberOfLines={1}
-        style={[
-          styles.navLabel,
-          compact && styles.compactLabel,
-          active && styles.navLabelActive,
-        ]}
+        style={[styles.navLabel, compact && styles.compactLabel, active && styles.navLabelActive]}
       >
         {item.label}
       </Text>
@@ -207,8 +176,8 @@ function NavItem({
   );
 }
 const styles = StyleSheet.create({
-  app: { flex: 1, flexDirection: "row", backgroundColor: colors.background },
-  appMobile: { flexDirection: "column" },
+  app: { flex: 1, flexDirection: 'row', backgroundColor: colors.background },
+  appMobile: { flexDirection: 'column' },
   sidebar: {
     width: 248,
     padding: spacing.xl,
@@ -217,25 +186,25 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundDeep,
   },
   brand: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
     marginBottom: spacing.xxxl,
   },
   brandMark: {
     height: 34,
     width: 34,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: radius.md,
     backgroundColor: colors.primary,
   },
   brandText: { ...typography.h3 },
   sideNav: { gap: spacing.xs, flex: 1 },
   account: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: spacing.sm,
-    alignItems: "center",
+    alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingTop: spacing.lg,
@@ -246,9 +215,9 @@ const styles = StyleSheet.create({
   topbar: {
     minHeight: layout.headerHeight,
     paddingHorizontal: spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.background,
@@ -256,12 +225,12 @@ const styles = StyleSheet.create({
   kicker: {
     ...typography.caption,
     color: colors.primary,
-    textTransform: "uppercase",
-    fontWeight: "700",
+    textTransform: 'uppercase',
+    fontWeight: '700',
     letterSpacing: 1,
   },
   title: { ...typography.h4, marginTop: spacing.xxs },
-  actions: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   family: {
     paddingHorizontal: spacing.md,
     height: 40,
@@ -269,8 +238,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   familyText: { ...typography.caption, color: colors.textSecondary },
@@ -278,26 +247,26 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.pill,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: colors.surface,
   },
   badge: {
-    position: "absolute",
+    position: 'absolute',
     right: 0,
     top: 0,
     minWidth: 16,
     height: 16,
     borderRadius: radius.pill,
     backgroundColor: colors.error,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  badgeText: { fontSize: 9, color: colors.textOnPrimary, fontWeight: "700" },
+  badgeText: { fontSize: 9, color: colors.textOnPrimary, fontWeight: '700' },
   content: { flex: 1 },
   mobileNav: {
     minHeight: layout.tabBarHeight,
-    flexDirection: "row",
+    flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: colors.border,
     backgroundColor: colors.tabBar,
@@ -307,8 +276,8 @@ const styles = StyleSheet.create({
   navItem: {
     minHeight: 44,
     paddingHorizontal: spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
     borderRadius: radius.md,
   },
@@ -316,8 +285,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 0,
     paddingVertical: spacing.xs,
-    flexDirection: "column",
-    justifyContent: "center",
+    flexDirection: 'column',
+    justifyContent: 'center',
     gap: spacing.xxs,
   },
   navActive: {
@@ -328,8 +297,8 @@ const styles = StyleSheet.create({
   navLabel: {
     ...typography.bodySmall,
     color: colors.textTertiary,
-    fontWeight: "500",
+    fontWeight: '500',
   },
-  navLabelActive: { color: colors.text, fontWeight: "600" },
+  navLabelActive: { color: colors.text, fontWeight: '600' },
   compactLabel: { fontSize: 9 },
 });

@@ -36,7 +36,10 @@ export function AvatarPicker({
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       showAlert(
-        t('access_denied_msg','Consenti l\'accesso alla galleria nelle impostazioni per cambiare la foto.'),
+        t(
+          'access_denied_msg',
+          "Consenti l'accesso alla galleria nelle impostazioni per cambiare la foto.",
+        ),
         { type: 'error' },
       );
       return;
@@ -60,7 +63,9 @@ export function AvatarPicker({
     try {
       await onPick(uri, fileName, mimeType);
     } catch (e) {
-      showAlert(e instanceof Error ? e.message : t('upload_failed','Caricamento fallito'), { type: 'error' });
+      showAlert(e instanceof Error ? e.message : t('upload_failed', 'Caricamento fallito'), {
+        type: 'error',
+      });
     } finally {
       setIsUploading(false);
     }
@@ -74,29 +79,31 @@ export function AvatarPicker({
       style={[style]}
     >
       <View style={{ position: 'relative' }}>
-        {/*
-          Avatar risolve internamente currentUrl:
-          - se è un UUID o /api/files/:id → aggiunge il token JWT
-          - se è vuoto → mostra le iniziali
-        */}
         <Avatar uri={currentUrl || undefined} name={name} size={size} />
 
         {!isUploading && (
-          <View style={[styles.badge, {
-            width: size * 0.32,
-            height: size * 0.32,
-            borderRadius: size * 0.16,
-          }]}>
+          <View
+            style={[
+              styles.badge,
+              {
+                width: size * 0.32,
+                height: size * 0.32,
+                borderRadius: size * 0.16,
+              },
+            ]}
+          >
             <Text style={[styles.badgeIcon, { fontSize: size * 0.16 }]}>✏️</Text>
           </View>
         )}
 
         {isUploading && (
-          <View style={[
-            StyleSheet.absoluteFillObject,
-            styles.spinnerOverlay,
-            { borderRadius: size / 2 },
-          ]}>
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              styles.spinnerOverlay,
+              { borderRadius: size / 2 },
+            ]}
+          >
             <ActivityIndicator color={colors.textOnPrimary} size="small" />
           </View>
         )}

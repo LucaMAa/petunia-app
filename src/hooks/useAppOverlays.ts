@@ -50,7 +50,9 @@ export function useAppOverlays(): AppOverlaysState {
     isLoading: alertsLoading,
   } = usePendingAlerts();
 
-  useEffect(() => { loadInvites(); }, []);
+  useEffect(() => {
+    loadInvites();
+  }, []);
 
   const { wsRef } = useWebSocket((msg) => {
     if (msg.event === 'family_invite') {
@@ -97,27 +99,35 @@ export function useAppOverlays(): AppOverlaysState {
           markAckedByReminder(p.reminder_id);
         }
         reloadAlerts().catch(() => {});
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   });
 
-  const handleAccept = useCallback(async (invite: FamilyInvite) => {
-    await familiesApi.respondToInvite(invite.id, true);
-    removeInvite(invite.id);
-    setPetRefreshKey((k) => k + 1);
-  }, [removeInvite]);
+  const handleAccept = useCallback(
+    async (invite: FamilyInvite) => {
+      await familiesApi.respondToInvite(invite.id, true);
+      removeInvite(invite.id);
+      setPetRefreshKey((k) => k + 1);
+    },
+    [removeInvite],
+  );
 
-  const handleDecline = useCallback(async (invite: FamilyInvite) => {
-    await familiesApi.respondToInvite(invite.id, false);
-    removeInvite(invite.id);
-  }, [removeInvite]);
+  const handleDecline = useCallback(
+    async (invite: FamilyInvite) => {
+      await familiesApi.respondToInvite(invite.id, false);
+      removeInvite(invite.id);
+    },
+    [removeInvite],
+  );
 
-  const ackFiredReminder = useCallback(async (occurrenceKey: string) => {
-    if (!firedReminder) return;
-    await remindersApi.ack(firedReminder.reminder_id, occurrenceKey);
-    markAlertAcked(firedReminder.reminder_id, occurrenceKey);
-  }, [firedReminder, markAlertAcked]);
+  const ackFiredReminder = useCallback(
+    async (occurrenceKey: string) => {
+      if (!firedReminder) return;
+      await remindersApi.ack(firedReminder.reminder_id, occurrenceKey);
+      markAlertAcked(firedReminder.reminder_id, occurrenceKey);
+    },
+    [firedReminder, markAlertAcked],
+  );
 
   return {
     invites,
@@ -132,7 +142,7 @@ export function useAppOverlays(): AppOverlaysState {
     pendingCount,
     alertsLoading,
     showPendingAlerts,
-    openPendingAlerts:  () => setShowPendingAlerts(true),
+    openPendingAlerts: () => setShowPendingAlerts(true),
     closePendingAlerts: () => setShowPendingAlerts(false),
     markAlertAcked,
     reloadAlerts,

@@ -37,8 +37,7 @@ export function useWebSocket(onMessage: MessageHandler) {
       try {
         const msg: WsMessage = JSON.parse(e.data);
         handlers.current(msg);
-      } catch {
-      }
+      } catch {}
     };
 
     socket.onclose = () => {

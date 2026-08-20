@@ -13,16 +13,14 @@ function extractFileId(value: string): string | null {
   const apiMatch = value.match(/\/api\/files\/([0-9a-f-]{36})/i);
   if (apiMatch) return apiMatch[1];
 
-  const uuidMatch = value.match(
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  );
+  const uuidMatch = value.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
   if (uuidMatch) return value;
 
   return null;
 }
 
 export function useAuthenticatedImageSource(
-  fileIdOrUrl: string | null | undefined
+  fileIdOrUrl: string | null | undefined,
 ): AuthenticatedImageSource | undefined {
   const [source, setSource] = useState<AuthenticatedImageSource | undefined>(undefined);
 

@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -8,25 +8,11 @@ import {
   TextStyle,
   View,
   ViewStyle,
-} from "react-native";
-import {
-  animation,
-  colors,
-  layout,
-  radius,
-  shadow,
-  spacing,
-  typography,
-} from "../../styles/theme";
+} from 'react-native';
+import { animation, colors, layout, radius, shadow, spacing, typography } from '../../styles/theme';
 
-type Variant =
-  | "primary"
-  | "secondary"
-  | "outline"
-  | "ghost"
-  | "danger"
-  | "gold";
-type Size = "sm" | "md" | "lg";
+type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'gold';
+type Size = 'sm' | 'md' | 'lg';
 
 interface ButtonProps {
   label: string;
@@ -47,8 +33,8 @@ interface ButtonProps {
 export function Button({
   label,
   onPress,
-  variant = "primary",
-  size = "md",
+  variant = 'primary',
+  size = 'md',
   loading = false,
   disabled = false,
   style,
@@ -72,7 +58,7 @@ export function Button({
       style={[
         fullWidth && styles.fullWidth,
         styles.shadowWrap,
-        withShadow && variant === "primary" && shadow.brand,
+        withShadow && variant === 'primary' && shadow.brand,
         { transform: [{ scale }] },
       ]}
     >
@@ -98,9 +84,7 @@ export function Button({
           <ActivityIndicator
             size="small"
             color={
-              variant === "ghost" ||
-              variant === "outline" ||
-              variant === "secondary"
+              variant === 'ghost' || variant === 'outline' || variant === 'secondary'
                 ? colors.primary
                 : colors.textOnPrimary
             }
@@ -108,14 +92,7 @@ export function Button({
         ) : (
           <View style={styles.content}>
             {icon ? <View style={styles.icon}>{icon}</View> : null}
-            <Text
-              style={[
-                styles.text,
-                textVariants[variant],
-                textSizes[size],
-                textStyle,
-              ]}
-            >
+            <Text style={[styles.text, textVariants[variant], textSizes[size], textStyle]}>
               {label}
             </Text>
             {iconRight ? <View style={styles.icon}>{iconRight}</View> : null}
@@ -128,21 +105,21 @@ export function Button({
 
 const styles = StyleSheet.create({
   shadowWrap: { borderRadius: radius.md },
-  fullWidth: { width: "100%" },
+  fullWidth: { width: '100%' },
   base: {
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: radius.md,
     minWidth: layout.minTouchTarget,
   },
   content: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.sm,
   },
-  icon: { alignItems: "center", justifyContent: "center" },
-  text: { textAlign: "center" },
+  icon: { alignItems: 'center', justifyContent: 'center' },
+  text: { textAlign: 'center' },
   pressed: { opacity: 0.9 },
   disabled: { opacity: 0.48 },
 });
@@ -158,7 +135,7 @@ const variantStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
-  ghost: { backgroundColor: "transparent" },
+  ghost: { backgroundColor: 'transparent' },
   danger: { backgroundColor: colors.error },
   gold: { backgroundColor: colors.accent },
 });
@@ -178,5 +155,5 @@ const textVariants = StyleSheet.create({
 const textSizes = StyleSheet.create({
   sm: { ...typography.label, fontSize: 12 },
   md: { ...typography.bodyMedium, fontSize: 14 },
-  lg: { ...typography.bodyMedium, fontSize: 16, fontWeight: "600" },
+  lg: { ...typography.bodyMedium, fontSize: 16, fontWeight: '600' },
 });

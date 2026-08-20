@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, KeyboardAvoidingView,
-  Platform, StyleSheet, TouchableOpacity,
+  View,
+  Text,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Family } from '../../types';
@@ -63,10 +68,7 @@ export function FamilyFormScreen({ existingFamily, onSuccess, onCancel }: Props)
         </View>
 
         <ScrollView
-          contentContainerStyle={[
-            styles.container,
-            { paddingBottom: insets.bottom + spacing.xl },
-          ]}
+          contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + spacing.xl }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -76,7 +78,10 @@ export function FamilyFormScreen({ existingFamily, onSuccess, onCancel }: Props)
             label="Nome famiglia *"
             placeholder="Es. Famiglia Rossi"
             value={name}
-            onChangeText={v => { setName(v); setNameError(''); }}
+            onChangeText={(v) => {
+              setName(v);
+              setNameError('');
+            }}
             error={nameError}
             autoFocus
           />
@@ -93,15 +98,15 @@ export function FamilyFormScreen({ existingFamily, onSuccess, onCancel }: Props)
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.background },
-  flex:   { flex: 1 },
+  safe: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
   },
-  cancelText:  { color: colors.primary },
+  cancelText: { color: colors.primary },
   headerTitle: { ...typography.h3 },
-  container:   { padding: spacing.lg, gap: spacing.md },
+  container: { padding: spacing.lg, gap: spacing.md },
 });

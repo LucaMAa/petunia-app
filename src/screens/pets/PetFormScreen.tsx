@@ -48,48 +48,53 @@ interface Props {
 }
 
 interface FormState {
-  name:       string;
-  species:    string;
-  breed:      string;
+  name: string;
+  species: string;
+  breed: string;
   birth_date: string;
-  gender:     string;
+  gender: string;
 }
 
 export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useLocalization();
-  const { showAlert } = useAlert();
+  useAlert();
   const isEditing = !!existingPet;
 
   const [form, setForm] = useState<FormState>({
-    name:       existingPet?.name ?? '',
-    species:    existingPet?.species ?? '',
-    breed:      existingPet?.breed ?? '',
+    name: existingPet?.name ?? '',
+    species: existingPet?.species ?? '',
+    breed: existingPet?.breed ?? '',
     birth_date: existingPet?.birth_date
       ? new Date(existingPet.birth_date).toISOString().split('T')[0]
       : '',
-    gender:     existingPet?.gender ?? '',
+    gender: existingPet?.gender ?? '',
   });
 
   const [savedPet, setSavedPet] = useState<Pet | null>(existingPet ?? null);
-  const [errors, setErrors]     = useState<Partial<FormState>>({});
-  const [error, setError]       = useState<string | null>(null);
+  const [pendingAvatar, setPendingAvatar] = useState<{
+    uri: string;
+    fileName: string;
+    mimeType: string;
+  } | null>(null);
+  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   function set(field: keyof FormState) {
     return (value: string) => {
-      setForm(p => ({ ...p, [field]: value }));
-      setErrors(p => ({ ...p, [field]: undefined }));
+      setForm((p) => ({ ...p, [field]: value }));
+      setErrors((p) => ({ ...p, [field]: undefined }));
     };
   }
 
   function validate(): boolean {
     const e: Partial<FormState> = {};
-    if (!form.name.trim()) e.name = t('name_required','Il nome è obbligatorio');
-    if (!form.species.trim()) e.species = t('species_required','La specie è obbligatoria');
+    if (!form.name.trim()) e.name = t('name_required', 'Il nome è obbligatorio');
+    if (!form.species.trim()) e.species = t('species_required', 'La specie è obbligatoria');
     if (form.birth_date && !/^\d{4}-\d{2}-\d{2}$/.test(form.birth_date)) {
-      e.birth_date = t('date_format','Formato: YYYY-MM-DD');
+      e.birth_date = t('date_format', 'Formato: YYYY-MM-DD');
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -101,11 +106,11 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
     setError(null);
     try {
       const dto: CreatePetDto = {
-        name:       form.name.trim(),
-        species:    form.species.trim().toLowerCase(),
-        breed:      form.breed.trim() || undefined,
+        name: form.name.trim(),
+        species: form.species.trim().toLowerCase(),
+        breed: form.breed.trim() || undefined,
         birth_date: form.birth_date ? new Date(form.birth_date).toISOString() : null,
-        gender:     form.gender || undefined,
+        gender: form.gender || undefined,
       };
 
       const pet = isEditing
@@ -113,33 +118,87 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
         : await petsApi.create(dto);
 
       setSavedPet(pet);
-      onSuccess(pet);
+      if (pendingAvatar) {
+        try {
+          const updatedFile = await uploadApi.petAvatar(
+            pet.id,
+            pendingAvatar.uri,
+            pendingAvatar.fileName,
+            pendingAvatar.mimeType,
+          );
+          const match = (updatedFile.url || '').match(/\/api\/files\/([0-9a-f-]{36})/i);
+          const returnedFileId = match ? match[1] : updatedFile.id;
+
+          try {
+            const refreshed = await petsApi.get(pet.id);
+            setSavedPet(refreshed);
+            onSuccess(refreshed);
+          } catch (e) {
+            // fallback: update locally
+            setSavedPet((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                avatar: { ...updatedFile, id: returnedFileId, url: updatedFile.url },
+                avatar_file_id: returnedFileId,
+                avatar_url: updatedFile.url,
+              };
+            });
+            onSuccess(pet);
+          }
+        } catch (e) {
+          setError(e instanceof Error ? e.message : t('upload_failed', 'Caricamento fallito'));
+          onSuccess(pet);
+        } finally {
+          setPendingAvatar(null);
+        }
+      } else {
+        onSuccess(pet);
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('something_went_wrong','Qualcosa è andato storto'));
+      setError(
+        e instanceof Error ? e.message : t('something_went_wrong', 'Qualcosa è andato storto'),
+      );
     } finally {
       setIsLoading(false);
     }
   }
 
   async function handleAvatarPick(uri: string, fileName: string, mimeType: string) {
-    if (!savedPet) {
-      showAlert(t('save_first_msg', "Salva l'animale prima di caricare la foto."), { type: 'error' });
-      return;
-    }
+    if (savedPet) {
       const updatedFile = await uploadApi.petAvatar(savedPet.id, uri, fileName, mimeType);
-      setSavedPet(prev => {
-        const next = prev ? { ...prev, avatar: updatedFile, avatar_url: updatedFile.url } : prev;
+      const match = (updatedFile.url || '').match(/\/api\/files\/([0-9a-f-]{36})/i);
+      const returnedFileId = match ? match[1] : updatedFile.id;
+      setSavedPet((prev) => {
+        if (!prev) return prev;
+        const next = {
+          ...prev,
+          avatar: {
+            ...updatedFile,
+            id: returnedFileId,
+            url: updatedFile.url,
+          },
+          avatar_file_id: returnedFileId,
+          avatar_url: updatedFile.url,
+        };
         return next;
       });
 
       try {
         const refreshed = await petsApi.get(savedPet.id);
         setSavedPet(refreshed);
-      } catch (e) {
-      }
+      } catch (e) {}
+    } else {
+      setPendingAvatar({ uri, fileName, mimeType });
+    }
   }
-  
-  const currentAvatarSource = savedPet?.avatar?.id ?? savedPet?.avatar_file_id ?? savedPet?.avatar_url ?? '';
+
+  const currentAvatarSource =
+    pendingAvatar?.uri ??
+    savedPet?.avatar?.id ??
+    savedPet?.avatar_file_id ??
+    savedPet?.avatar_url ??
+    '';
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
@@ -147,56 +206,44 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onCancel}>
-            <Text style={styles.cancelText}>{t('cancel','Annulla')}</Text>
+            <Text style={styles.cancelText}>{t('cancel', 'Annulla')}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {isEditing ? t('edit','Modifica') : t('new_pet','Nuovo animale')}
+            {isEditing ? t('edit', 'Modifica') : t('new_pet', 'Nuovo animale')}
           </Text>
           <View style={{ width: 70 }} />
         </View>
-
-        {/* BODY */}
         <ScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={[
-            styles.container,
-            { paddingBottom: insets.bottom + spacing.xl },
-          ]}
+          contentContainerStyle={[styles.container, { paddingBottom: insets.bottom + spacing.xl }]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <ErrorBanner message={error} />
-
-          {/* AVATAR PICKER */}
           <View style={styles.avatarRow}>
             <AvatarPicker
               currentUrl={currentAvatarSource}
-              name={form.name || t('pet','Pet')}
+              name={form.name}
               size={96}
               onPick={handleAvatarPick}
             />
-            {!savedPet && (
+            {pendingAvatar ? (
               <Text style={styles.avatarHint}>
-                Salva prima per poter caricare la foto
+                Anteprima immagine — verrà caricata al salvataggio
               </Text>
-            )}
+            ) : null}
           </View>
-
-          {/* NAME */}
           <TextInput
-            label={t('name_label','Nome *')}
+            label={t('name_label', 'Nome *')}
             value={form.name}
             onChangeText={set('name')}
             error={errors.name}
           />
-
-          {/* SPECIES */}
-          <Text style={styles.label}>{t('species_label','Specie *')}</Text>
+          <Text style={styles.label}>{t('species_label', 'Specie *')}</Text>
           <View style={styles.row}>
-            {SPECIES_OPTIONS.map(opt => {
+            {SPECIES_OPTIONS.map((opt) => {
               const selected = form.species === opt.value;
               const label = `${opt.emoji} ${t(`species.${opt.key}`, opt.key)}`;
               return (
@@ -205,19 +252,17 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
                   onPress={() => set('species')(opt.value)}
                   style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    {label}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-
-          {/* BREED */}
           <TextInput label="Razza" value={form.breed} onChangeText={set('breed')} />
-
-          {/* GENDER */}
-          <Text style={styles.label}>{t('gender_label','Sesso')}</Text>
+          <Text style={styles.label}>{t('gender_label', 'Sesso')}</Text>
           <View style={styles.row}>
-            {GENDER_OPTIONS.map(opt => {
+            {GENDER_OPTIONS.map((opt) => {
               const selected = form.gender === opt.value;
               const label = t(opt.labelKey, opt.labelKey.split('.').pop() || opt.value);
               return (
@@ -226,25 +271,23 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
                   onPress={() => set('gender')(opt.value)}
                   style={[styles.chip, selected && styles.chipSelected]}
                 >
-                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
+                  <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                    {label}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
-
-          {/* BIRTH DATE */}
           <Text style={styles.label}>Data di nascita</Text>
           <TouchableOpacity
             onPress={() => setShowDatePicker(true)}
             style={[styles.dateInput, errors.birth_date && styles.inputError]}
           >
             <Text style={form.birth_date ? styles.dateText : styles.placeholderText}>
-              {form.birth_date || t('date_placeholder','YYYY-MM-DD')}
+              {form.birth_date || t('date_placeholder', 'YYYY-MM-DD')}
             </Text>
           </TouchableOpacity>
-          {errors.birth_date ? (
-            <Text style={styles.errorText}>{errors.birth_date}</Text>
-          ) : null}
+          {errors.birth_date ? <Text style={styles.errorText}>{errors.birth_date}</Text> : null}
 
           {showDatePicker && (
             <DateTimePicker
@@ -262,7 +305,7 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
           )}
 
           <Button
-            label={isEditing ? t('save','Salva') : t('create','Crea')}
+            label={isEditing ? t('save', 'Salva') : t('create', 'Crea')}
             onPress={handleSubmit}
             loading={isLoading}
           />
@@ -273,21 +316,35 @@ export function PetFormScreen({ existingPet, onSuccess, onCancel }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safe:       { flex: 1, backgroundColor: colors.background },
-  flex:       { flex: 1 },
-  header:     { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: spacing.md },
+  safe: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+  },
   cancelText: { color: colors.primary },
-  headerTitle:{ ...typography.h3 },
-  container:  { padding: spacing.lg, gap: spacing.md },
-  avatarRow:  { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm },
+  headerTitle: { ...typography.h3 },
+  container: { padding: spacing.lg, gap: spacing.md },
+  avatarRow: { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm },
   avatarHint: { ...typography.caption, color: colors.textMuted, textAlign: 'center' },
-  label:      { ...typography.label, marginTop: spacing.sm },
-  row:        { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  chip:       { minHeight: 40, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, justifyContent: 'center', borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surface, borderRadius: radius.md },
+  label: { ...typography.label, marginTop: spacing.sm },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  chip: {
+    minHeight: 40,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+  },
   chipSelected: { backgroundColor: colors.primaryLight, borderColor: colors.primary },
   chipText: { ...typography.bodySmall, color: colors.text },
   chipTextSelected: { color: colors.primaryDeep, fontWeight: '700' },
-  dateInput:  {
+  dateInput: {
     height: layout.inputHeight,
     justifyContent: 'center',
     paddingHorizontal: spacing.sm,
@@ -311,5 +368,5 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.error,
     marginTop: spacing.xs,
-  }
+  },
 });

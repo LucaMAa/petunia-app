@@ -34,9 +34,7 @@ export function PetsNavigator({ refreshKey }: Props) {
         onBack={() => setRoute({ name: 'list' })}
         onEdit={(pet) => setRoute({ name: 'edit', pet })}
         onDelete={() => setRoute({ name: 'list' })}
-        onOpenReminders={(family) =>
-          setRoute({ name: 'reminders', petId: route.petId, family })
-        }
+        onOpenReminders={(family) => setRoute({ name: 'reminders', petId: route.petId, family })}
         onOpenDocuments={() => setRoute({ name: 'documents', petId: route.petId })}
       />
     );
@@ -84,12 +82,8 @@ export function PetsNavigator({ refreshKey }: Props) {
         familyId={route.family.id}
         preselectedPetId={route.petId}
         pets={route.family.pets ?? []}
-        onSuccess={() =>
-          setRoute({ name: 'reminders', petId: route.petId, family: route.family })
-        }
-        onCancel={() =>
-          setRoute({ name: 'reminders', petId: route.petId, family: route.family })
-        }
+        onSuccess={() => setRoute({ name: 'reminders', petId: route.petId, family: route.family })}
+        onCancel={() => setRoute({ name: 'reminders', petId: route.petId, family: route.family })}
       />
     );
 
@@ -100,12 +94,8 @@ export function PetsNavigator({ refreshKey }: Props) {
         preselectedPetId={route.petId}
         pets={route.family.pets ?? []}
         existingReminder={route.reminder}
-        onSuccess={() =>
-          setRoute({ name: 'reminders', petId: route.petId, family: route.family })
-        }
-        onCancel={() =>
-          setRoute({ name: 'reminders', petId: route.petId, family: route.family })
-        }
+        onSuccess={() => setRoute({ name: 'reminders', petId: route.petId, family: route.family })}
+        onCancel={() => setRoute({ name: 'reminders', petId: route.petId, family: route.family })}
       />
     );
 
@@ -114,14 +104,17 @@ export function PetsNavigator({ refreshKey }: Props) {
       <AckHistoryScreen
         familyId={route.family.id}
         familyName={route.family.name}
-        onBack={() =>
-          setRoute({ name: 'reminders', petId: route.petId, family: route.family })
-        }
+        onBack={() => setRoute({ name: 'reminders', petId: route.petId, family: route.family })}
       />
     );
 
   if (route.name === 'documents')
-    return <PetDocumentsScreen petId={route.petId} onBack={() => setRoute({ name: 'detail', petId: route.petId })} />;
+    return (
+      <PetDocumentsScreen
+        petId={route.petId}
+        onBack={() => setRoute({ name: 'detail', petId: route.petId })}
+      />
+    );
 
   return (
     <PetListScreen

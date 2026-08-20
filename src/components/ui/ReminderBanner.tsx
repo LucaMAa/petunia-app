@@ -6,8 +6,8 @@ import { colors, spacing, radius, shadow, typography } from '../../styles/theme'
 
 const TYPE_META: Record<string, { emoji: string; label: string }> = {
   medicine: { emoji: '💊', label: 'Medicina' },
-  food:     { emoji: '🍽', label: 'Cibo' },
-  other:    { emoji: '🔔', label: 'Promemoria' },
+  food: { emoji: '🍽', label: 'Cibo' },
+  other: { emoji: '🔔', label: 'Promemoria' },
 };
 
 interface FiredProps {
@@ -36,11 +36,7 @@ export function ReminderFiredBanner({ payload, onAck, onDismiss }: FiredProps) {
 
   return (
     <Animated.View
-      style={[
-        styles.container,
-        { paddingTop: insets.top },
-        { transform: [{ translateY }] },
-      ]}
+      style={[styles.container, { paddingTop: insets.top }, { transform: [{ translateY }] }]}
     >
       <View style={styles.accentBar} />
       <View style={styles.body}>
@@ -48,11 +44,11 @@ export function ReminderFiredBanner({ payload, onAck, onDismiss }: FiredProps) {
         <View style={styles.textBlock}>
           <Text style={styles.label}>{meta.label.toUpperCase()}</Text>
           <Text style={styles.title}>{payload.title}</Text>
-          {!!payload.pet_name && (
-            <Text style={styles.sub}>Per {payload.pet_name}</Text>
-          )}
+          {!!payload.pet_name && <Text style={styles.sub}>Per {payload.pet_name}</Text>}
           {!!payload.notes && (
-            <Text style={styles.notes} numberOfLines={1}>{payload.notes}</Text>
+            <Text style={styles.notes} numberOfLines={1}>
+              {payload.notes}
+            </Text>
           )}
         </View>
         <TouchableOpacity onPress={onDismiss} style={styles.closeBtn} hitSlop={8}>
@@ -156,9 +152,12 @@ const styles = StyleSheet.create({
   sub: { ...typography.caption, color: colors.textMuted },
   notes: { ...typography.caption, color: colors.textTertiary },
   closeBtn: {
-    width: 26, height: 26, borderRadius: 99,
+    width: 26,
+    height: 26,
+    borderRadius: 99,
     backgroundColor: colors.backgroundAlt,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   closeTxt: { color: colors.textMuted, fontWeight: '700', fontSize: 12 },
   actions: {
@@ -168,17 +167,34 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   btnSecondary: {
-    flex: 1, height: 38, borderRadius: radius.md,
-    borderWidth: 1.5, borderColor: colors.border,
-    alignItems: 'center', justifyContent: 'center',
+    flex: 1,
+    height: 38,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.backgroundAlt,
   },
-  btnSecondaryTxt: { ...typography.body, fontWeight: '600', color: colors.textSecondary, fontSize: 14 },
+  btnSecondaryTxt: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
   btnPrimary: {
-    flex: 2, height: 38, borderRadius: radius.md,
+    flex: 2,
+    height: 38,
+    borderRadius: radius.md,
     backgroundColor: colors.primary,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     ...shadow.brand,
   },
-  btnPrimaryTxt: { ...typography.body, fontWeight: '700', color: colors.textOnPrimary, fontSize: 14 },
+  btnPrimaryTxt: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+    fontSize: 14,
+  },
 });

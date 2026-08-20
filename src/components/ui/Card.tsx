@@ -1,29 +1,29 @@
-import React from "react";
-import { StyleSheet, View, ViewStyle } from "react-native";
-import { colors, radius, shadow, spacing } from "../../styles/theme";
+import React from 'react';
+import { StyleSheet, View, ViewStyle } from 'react-native';
+import { colors, radius, shadow, spacing } from '../../styles/theme';
 
 interface CardProps {
   children: React.ReactNode;
   style?: ViewStyle;
   elevated?: boolean;
-  variant?: "default" | "tinted" | "outlined" | "ghost" | "brand" | "medical";
-  padding?: "none" | "xs" | "sm" | "md" | "lg";
+  variant?: 'default' | 'tinted' | 'outlined' | 'ghost' | 'brand' | 'medical';
+  padding?: 'none' | 'xs' | 'sm' | 'md' | 'lg';
 }
 
 export function Card({
   children,
   style,
   elevated = false,
-  variant = "default",
-  padding = "md",
+  variant = 'default',
+  padding = 'md',
 }: CardProps) {
   return (
     <View
       style={[
         styles.base,
         styles[variant],
-        elevated && variant !== "ghost" && shadow.sm,
-        padding !== "none" && paddingStyles[padding],
+        elevated && variant !== 'ghost' && shadow.sm,
+        padding !== 'none' && paddingStyles[padding],
         style,
       ]}
     >
@@ -33,7 +33,7 @@ export function Card({
 }
 
 const styles = StyleSheet.create({
-  base: { borderRadius: radius.lg, overflow: "hidden" },
+  base: { borderRadius: radius.lg, overflow: 'hidden' },
   default: {
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
-  ghost: { backgroundColor: "transparent" },
+  ghost: { backgroundColor: 'transparent' },
   brand: { backgroundColor: colors.primary },
   medical: {
     backgroundColor: colors.surface,

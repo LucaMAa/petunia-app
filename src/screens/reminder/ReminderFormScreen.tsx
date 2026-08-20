@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, KeyboardAvoidingView, Platform, TextInput as RNTextInput,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput as RNTextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalization } from '../../context/LocalizationContext';
-import { Reminder, CreateReminderDto, UpdateReminderDto, ReminderType, ReminderRepeat } from '../../types/reminders';
+import {
+  Reminder,
+  CreateReminderDto,
+  UpdateReminderDto,
+  ReminderType,
+  ReminderRepeat,
+} from '../../types/reminders';
 import { Pet } from '../../types';
 import { useReminders } from '../../hooks/useReminders';
 import { TextInput } from '../../components/ui/TextInput';
@@ -24,15 +36,15 @@ interface Props {
 
 const TYPE_OPTIONS: { value: ReminderType; emoji: string; label: string }[] = [
   { value: 'medicine', emoji: '💊', label: 'Medicina' },
-  { value: 'food',     emoji: '🍽',  label: 'Cibo'     },
-  { value: 'other',    emoji: '🔔', label: 'Altro'    },
+  { value: 'food', emoji: '🍽', label: 'Cibo' },
+  { value: 'other', emoji: '🔔', label: 'Altro' },
 ];
 
 const REPEAT_OPTIONS: { value: ReminderRepeat; label: string; icon: string }[] = [
-  { value: 'none',   label: 'Una volta',      icon: '1️⃣' },
-  { value: 'daily',  label: 'Ogni giorno',    icon: '📅' },
+  { value: 'none', label: 'Una volta', icon: '1️⃣' },
+  { value: 'daily', label: 'Ogni giorno', icon: '📅' },
   { value: 'weekly', label: 'Ogni settimana', icon: '🗓' },
-  { value: 'custom', label: 'Cron custom',    icon: '⚙️' },
+  { value: 'custom', label: 'Cron custom', icon: '⚙️' },
 ];
 
 const DAYS = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
@@ -52,44 +64,51 @@ interface FormState {
 
 function initialState(r?: Reminder, preselectedPetId?: string): FormState {
   return {
-    type:         (r?.type    ?? 'medicine') as ReminderType,
-    title:        r?.title    ?? '',
-    notes:        r?.notes    ?? '',
-    repeat:       (r?.repeat  ?? 'daily')    as ReminderRepeat,
-    pet_id:       r?.pet?.id  ?? preselectedPetId ?? '',
-    time_of_day:  r?.time_of_day  ?? '08:00',
-    day_of_week:  r?.day_of_week  ?? 1,
+    type: (r?.type ?? 'medicine') as ReminderType,
+    title: r?.title ?? '',
+    notes: r?.notes ?? '',
+    repeat: (r?.repeat ?? 'daily') as ReminderRepeat,
+    pet_id: r?.pet?.id ?? preselectedPetId ?? '',
+    time_of_day: r?.time_of_day ?? '08:00',
+    day_of_week: r?.day_of_week ?? 1,
     scheduled_at: r?.scheduled_at ?? '',
-    cron_expr:    r?.cron_expr    ?? '',
-    enabled:      r?.enabled      ?? true,
+    cron_expr: r?.cron_expr ?? '',
+    enabled: r?.enabled ?? true,
   };
 }
 
 export function ReminderFormScreen({
-  familyId, pets, preselectedPetId, existingReminder, onSuccess, onCancel,
+  familyId,
+  pets,
+  preselectedPetId,
+  existingReminder,
+  onSuccess,
+  onCancel,
 }: Props) {
   const insets = useSafeAreaInsets();
   const isEditing = !!existingReminder;
   const { create, update } = useReminders(familyId);
   const { t } = useLocalization();
 
-  const [form, setForm]     = useState<FormState>(initialState(existingReminder, preselectedPetId));
+  const [form, setForm] = useState<FormState>(initialState(existingReminder, preselectedPetId));
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const [error, setError]   = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   function set<K extends keyof FormState>(key: K) {
     return (value: FormState[K]) => {
-      setForm(p => ({ ...p, [key]: value }));
-      setErrors(p => ({ ...p, [key]: undefined }));
+      setForm((p) => ({ ...p, [key]: value }));
+      setErrors((p) => ({ ...p, [key]: undefined }));
     };
   }
 
   function validate(): boolean {
     const e: typeof errors = {};
     if (!form.title.trim()) e.title = 'Il titolo è obbligatorio';
-    if ((form.repeat === 'daily' || form.repeat === 'weekly') &&
-        !/^\d{2}:\d{2}$/.test(form.time_of_day)) {
+    if (
+      (form.repeat === 'daily' || form.repeat === 'weekly') &&
+      !/^\d{2}:\d{2}$/.test(form.time_of_day)
+    ) {
       e.time_of_day = 'Formato HH:MM (es. 08:30)';
     }
     if (form.repeat === 'none' && !form.scheduled_at) {
@@ -109,28 +128,30 @@ export function ReminderFormScreen({
     try {
       if (isEditing) {
         const dto: UpdateReminderDto = {
-          title:        form.title.trim(),
-          notes:        form.notes.trim(),
-          repeat:       form.repeat,
-          time_of_day:  form.repeat === 'daily' || form.repeat === 'weekly' ? form.time_of_day : undefined,
-          day_of_week:  form.repeat === 'weekly' ? form.day_of_week : undefined,
+          title: form.title.trim(),
+          notes: form.notes.trim(),
+          repeat: form.repeat,
+          time_of_day:
+            form.repeat === 'daily' || form.repeat === 'weekly' ? form.time_of_day : undefined,
+          day_of_week: form.repeat === 'weekly' ? form.day_of_week : undefined,
           scheduled_at: form.repeat === 'none' ? form.scheduled_at || null : null,
-          cron_expr:    form.repeat === 'custom' ? form.cron_expr.trim() : undefined,
-          enabled:      form.enabled,
+          cron_expr: form.repeat === 'custom' ? form.cron_expr.trim() : undefined,
+          enabled: form.enabled,
         };
         await update(existingReminder!.id, dto);
       } else {
         const dto: CreateReminderDto = {
-          family_id:    familyId,
-          pet_id:       form.pet_id || undefined,
-          type:         form.type,
-          title:        form.title.trim(),
-          notes:        form.notes.trim(),
-          repeat:       form.repeat,
-          time_of_day:  form.repeat === 'daily' || form.repeat === 'weekly' ? form.time_of_day : undefined,
-          day_of_week:  form.repeat === 'weekly' ? form.day_of_week : undefined,
+          family_id: familyId,
+          pet_id: form.pet_id || undefined,
+          type: form.type,
+          title: form.title.trim(),
+          notes: form.notes.trim(),
+          repeat: form.repeat,
+          time_of_day:
+            form.repeat === 'daily' || form.repeat === 'weekly' ? form.time_of_day : undefined,
+          day_of_week: form.repeat === 'weekly' ? form.day_of_week : undefined,
           scheduled_at: form.repeat === 'none' ? form.scheduled_at || null : null,
-          cron_expr:    form.repeat === 'custom' ? form.cron_expr.trim() : undefined,
+          cron_expr: form.repeat === 'custom' ? form.cron_expr.trim() : undefined,
         };
         await create(dto);
       }
@@ -142,9 +163,7 @@ export function ReminderFormScreen({
     }
   }
 
-  const lockedPet = preselectedPetId
-    ? pets.find(p => p.id === preselectedPetId)
-    : undefined;
+  const lockedPet = preselectedPetId ? pets.find((p) => p.id === preselectedPetId) : undefined;
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
@@ -152,13 +171,14 @@ export function ReminderFormScreen({
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onCancel}>
-            <Text style={styles.cancelText}>{t('cancel','Annulla')}</Text>
+            <Text style={styles.cancelText}>{t('cancel', 'Annulla')}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {isEditing ? t('edit_reminder','Modifica promemoria') : t('new_reminder','Nuovo promemoria')}
+            {isEditing
+              ? t('edit_reminder', 'Modifica promemoria')
+              : t('new_reminder', 'Nuovo promemoria')}
           </Text>
           <View style={{ width: 70 }} />
         </View>
@@ -169,25 +189,23 @@ export function ReminderFormScreen({
           showsVerticalScrollIndicator={false}
         >
           <ErrorBanner message={error} />
-
-          {/* TIPO */}
           <Text style={styles.label}>{'Tipo *'}</Text>
           <View style={styles.row}>
-            {TYPE_OPTIONS.map(opt => (
+            {TYPE_OPTIONS.map((opt) => (
               <TouchableOpacity
                 key={opt.value}
                 onPress={() => set('type')(opt.value)}
                 style={[styles.chip, form.type === opt.value && styles.chipSelected]}
               >
                 <Text style={styles.chipEmoji}>{opt.emoji}</Text>
-                <Text style={[styles.chipLabel, form.type === opt.value && styles.chipLabelSelected]}>
+                <Text
+                  style={[styles.chipLabel, form.type === opt.value && styles.chipLabelSelected]}
+                >
                   {opt.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-
-          {/* TITOLO */}
           <TextInput
             label="Titolo *"
             placeholder="Es. Antibiotico mattina"
@@ -195,8 +213,6 @@ export function ReminderFormScreen({
             onChangeText={set('title')}
             error={errors.title}
           />
-
-          {/* NOTE — custom multiline, not the animated TextInput */}
           <View style={styles.notesWrapper}>
             <Text style={styles.label}>{'Note'}</Text>
             <RNTextInput
@@ -210,8 +226,6 @@ export function ReminderFormScreen({
               textAlignVertical="top"
             />
           </View>
-
-          {/* ANIMALE */}
           {pets.length > 0 && (
             <>
               <Text style={styles.label}>{'Animale (opzionale)'}</Text>
@@ -229,14 +243,19 @@ export function ReminderFormScreen({
                   >
                     <Text style={styles.chipLabel}>{'Nessuno'}</Text>
                   </TouchableOpacity>
-                  {pets.map(pet => (
+                  {pets.map((pet) => (
                     <TouchableOpacity
                       key={pet.id}
                       onPress={() => set('pet_id')(pet.id)}
                       style={[styles.chip, form.pet_id === pet.id && styles.chipSelected]}
                     >
                       <Text style={styles.chipEmoji}>{'🐾'}</Text>
-                      <Text style={[styles.chipLabel, form.pet_id === pet.id && styles.chipLabelSelected]}>
+                      <Text
+                        style={[
+                          styles.chipLabel,
+                          form.pet_id === pet.id && styles.chipLabelSelected,
+                        ]}
+                      >
                         {pet.name}
                       </Text>
                     </TouchableOpacity>
@@ -245,25 +264,26 @@ export function ReminderFormScreen({
               )}
             </>
           )}
-
-          {/* RIPETIZIONE */}
           <Text style={styles.label}>{'Ripetizione *'}</Text>
           <View style={styles.repeatGrid}>
-            {REPEAT_OPTIONS.map(opt => (
+            {REPEAT_OPTIONS.map((opt) => (
               <TouchableOpacity
                 key={opt.value}
                 onPress={() => set('repeat')(opt.value)}
                 style={[styles.repeatChip, form.repeat === opt.value && styles.repeatChipSelected]}
               >
                 <Text style={styles.repeatIcon}>{opt.icon}</Text>
-                <Text style={[styles.repeatLabel, form.repeat === opt.value && styles.repeatLabelSelected]}>
+                <Text
+                  style={[
+                    styles.repeatLabel,
+                    form.repeat === opt.value && styles.repeatLabelSelected,
+                  ]}
+                >
                   {opt.label}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
-
-          {/* ORARIO */}
           {(form.repeat === 'daily' || form.repeat === 'weekly') && (
             <TextInput
               label="Orario *"
@@ -274,8 +294,6 @@ export function ReminderFormScreen({
               error={errors.time_of_day}
             />
           )}
-
-          {/* GIORNO SETTIMANA */}
           {form.repeat === 'weekly' && (
             <>
               <Text style={styles.label}>{'Giorno della settimana'}</Text>
@@ -286,7 +304,9 @@ export function ReminderFormScreen({
                     onPress={() => set('day_of_week')(i)}
                     style={[styles.dayChip, form.day_of_week === i && styles.dayChipSelected]}
                   >
-                    <Text style={[styles.dayLabel, form.day_of_week === i && styles.dayLabelSelected]}>
+                    <Text
+                      style={[styles.dayLabel, form.day_of_week === i && styles.dayLabelSelected]}
+                    >
                       {day}
                     </Text>
                   </TouchableOpacity>
@@ -294,8 +314,6 @@ export function ReminderFormScreen({
               </View>
             </>
           )}
-
-          {/* DATA/ORA */}
           {form.repeat === 'none' && (
             <TextInput
               label="Data e ora *"
@@ -306,8 +324,6 @@ export function ReminderFormScreen({
               error={errors.scheduled_at}
             />
           )}
-
-          {/* CRON */}
           {form.repeat === 'custom' && (
             <TextInput
               label="Espressione Cron *"
@@ -332,8 +348,8 @@ export function ReminderFormScreen({
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.background },
-  flex:   { flex: 1 },
+  safe: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
 
   header: {
     flexDirection: 'row',
@@ -344,14 +360,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  cancelText:  { ...typography.body, fontWeight: '600', color: colors.primary },
+  cancelText: { ...typography.body, fontWeight: '600', color: colors.primary },
   headerTitle: { ...typography.h3 },
 
   container: { padding: spacing.lg, gap: spacing.md },
 
   label: { ...typography.label, marginTop: spacing.xs },
 
-  row:        { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  row: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -363,9 +379,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  chipSelected:      { borderColor: colors.primary, backgroundColor: colors.primaryLight },
-  chipEmoji:         { fontSize: 14 },
-  chipLabel:         { ...typography.bodySmall, color: colors.textSecondary, fontWeight: '600' },
+  chipSelected: { borderColor: colors.primary, backgroundColor: colors.primaryLight },
+  chipEmoji: { fontSize: 14 },
+  chipLabel: { ...typography.bodySmall, color: colors.textSecondary, fontWeight: '600' },
   chipLabelSelected: { color: colors.primaryDeep },
   notesWrapper: { gap: 6 },
   notesInput: {
@@ -397,20 +413,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     ...shadow.xs,
   },
-  repeatIcon:         { fontSize: 16 },
-  repeatLabel:        { ...typography.bodySmall, color: colors.textSecondary, fontWeight: '600' },
-  repeatLabelSelected:{ color: colors.primaryDeep },
+  repeatIcon: { fontSize: 16 },
+  repeatLabel: { ...typography.bodySmall, color: colors.textSecondary, fontWeight: '600' },
+  repeatLabelSelected: { color: colors.primaryDeep },
   dayChip: {
-    width: 40, height: 40,
+    width: 40,
+    height: 40,
     borderRadius: radius.md,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: colors.surface,
   },
   dayChipSelected: { borderColor: colors.primary, backgroundColor: colors.primary },
-  dayLabel:        { ...typography.caption, fontWeight: '700', color: colors.textSecondary },
-  dayLabelSelected:{ color: colors.textOnPrimary },
+  dayLabel: { ...typography.caption, fontWeight: '700', color: colors.textSecondary },
+  dayLabelSelected: { color: colors.textOnPrimary },
   petLocked: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -424,6 +442,6 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   petLockedEmoji: { fontSize: 16 },
-  petLockedText:  { ...typography.bodyMedium, color: colors.primaryDeep },
-  petLockedHint:  { ...typography.caption, color: colors.textMuted },
+  petLockedText: { ...typography.bodyMedium, color: colors.primaryDeep },
+  petLockedHint: { ...typography.caption, color: colors.textMuted },
 });

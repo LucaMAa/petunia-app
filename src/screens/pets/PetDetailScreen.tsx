@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -7,21 +7,16 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Family, Pet } from "../../types";
-import { petsApi } from "../../api/pets";
-import { uploadApi } from "../../api/uploads";
-import { Avatar, Button, Card, ErrorBanner } from "../../components/ui";
-import { FamilyPickerModal } from "../families/FamilyPickerModal";
-import {
-  colors,
-  layout,
-  radius,
-  spacing,
-  typography,
-} from "../../styles/theme";
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Family, Pet } from '../../types';
+import { petsApi } from '../../api/pets';
+import { uploadApi } from '../../api/uploads';
+import { Avatar, Button, Card, ErrorBanner } from '../../components/ui';
+import { FamilyPickerModal } from '../families/FamilyPickerModal';
+import { colors, layout, radius, spacing, typography } from '../../styles/theme';
+import { useLocalization } from '../../context/LocalizationContext';
 interface Props {
   petId: string;
   onEdit: (pet: Pet) => void;
@@ -43,9 +38,8 @@ export function PetDetailScreen({
   const [docs, setDocs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [picker, setPicker] = useState(false);
-  const [tab, setTab] = useState<"overview" | "health" | "activity">(
-    "overview",
-  );
+  const { t } = useLocalization();
+  const [tab, setTab] = useState<'overview' | 'health' | 'activity'>('overview');
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -69,26 +63,22 @@ export function PetDetailScreen({
   if (!pet)
     return (
       <View style={s.center}>
-        <ErrorBanner message="Non siamo riusciti a caricare questo profilo." />
-        <Button label="Torna agli animali" onPress={onBack} fullWidth={false} />
+        <ErrorBanner message={t('failed_to_load_pet')} />
+        <Button label={t('back_to_pets')} onPress={onBack} fullWidth={false} />
       </View>
     );
   const askDelete = () =>
-    Alert.alert(
-      `Eliminare ${pet.name}?`,
-      "Questa azione non può essere annullata.",
-      [
-        { text: "Annulla", style: "cancel" },
-        {
-          text: "Elimina",
-          style: "destructive",
-          onPress: async () => {
-            await petsApi.delete(petId);
-            onDelete();
-          },
+    Alert.alert(`${t('delete_pet')} ${pet.name}?`, `${t('delete_pet_confirmation')}`, [
+      { text: `${t('cancel')}`, style: 'cancel' },
+      {
+        text: `${t('delete')}`,
+        style: 'destructive',
+        onPress: async () => {
+          await petsApi.delete(petId);
+          onDelete();
         },
-      ],
-    );
+      },
+    ]);
   return (
     <ScrollView
       style={s.safe}
@@ -100,10 +90,10 @@ export function PetDetailScreen({
       <View style={s.top}>
         <Pressable onPress={onBack} style={s.back}>
           <Ionicons name="chevron-back" color={colors.primary} size={18} />
-          <Text style={s.backText}>Animali</Text>
+          <Text style={s.backText}>{t('pets_caps')}</Text>
         </Pressable>
         <Button
-          label="Modifica"
+          label={t('edit')}
           onPress={() => onEdit(pet)}
           variant="ghost"
           fullWidth={false}
@@ -111,46 +101,35 @@ export function PetDetailScreen({
         />
       </View>
       <View style={s.hero}>
-        <Avatar
-          name={pet.name}
-          uri={pet.avatar_file_id ?? undefined}
-          size={96}
-        />
+        <Avatar name={pet.name} uri={pet.avatar_file_id ?? undefined} size={96} />
         <View style={{ flex: 1 }}>
           <Text style={s.name}>{pet.name}</Text>
-          <Text style={s.meta}>
-            {[pet.species, pet.breed].filter(Boolean).join(" · ")}
-          </Text>
+          <Text style={s.meta}>{[pet.species, pet.breed].filter(Boolean).join(' · ')}</Text>
         </View>
       </View>
       <View style={s.tabs}>
-        {(["overview", "health", "activity"] as const).map((key) => (
+        {(['overview', 'health', 'activity'] as const).map((key) => (
           <Pressable
             key={key}
             onPress={() => setTab(key)}
             style={[s.tab, tab === key && s.tabActive]}
           >
             <Text style={[s.tabText, tab === key && s.tabTextActive]}>
-              {key === "overview"
-                ? "Panoramica"
-                : key === "health"
-                  ? "Salute"
-                  : "Attività"}
+              {key === 'overview' ? t('overview') : key === 'health' ? t('health') : t('activity')}
             </Text>
           </Pressable>
         ))}
       </View>
-      {tab === "overview" ? (
+      {tab === 'overview' ? (
         <>
           <Card variant="medical" style={s.panel}>
-            <Text style={s.kicker}>Stato salute</Text>
-            <Text style={s.panelTitle}>Nessuna scadenza imminente</Text>
+            <Text style={s.kicker}>{t('health_status')}</Text>
+            <Text style={s.panelTitle}>{t('no_upcoming_due_dates')}</Text>
             <Text style={s.panelText}>
-              Documenti e promemoria aiutano a tenere ordinata la cura di{" "}
-              {pet.name}.
+              {t('documents_and_reminders_help')} {pet.name}.
             </Text>
             <Button
-              label="Gestisci promemoria"
+              label={t('manage_reminders', '')}
               onPress={() => setPicker(true)}
               variant="secondary"
               fullWidth={false}
@@ -159,33 +138,29 @@ export function PetDetailScreen({
           </Card>
           <Row
             icon="document-text-outline"
-            title="Documenti sanitari"
-            value={docs ? `${docs} documenti salvati` : "Nessun documento"}
+            title={t('medical_documents')}
+            value={docs ? `${docs} ${t('documents')}` : t('no_documents')}
             onPress={onOpenDocuments}
           />
           <Row
             icon="notifications-outline"
-            title="Promemoria"
-            value="Cure e attività"
+            title={t('reminders')}
+            value={t('reminders_description')}
             onPress={() => setPicker(true)}
           />
         </>
-      ) : tab === "health" ? (
+      ) : tab === 'health' ? (
         <View style={s.empty}>
-          <Text style={s.sectionTitle}>Salute</Text>
-          <Text style={s.emptyText}>
-            Il backend non espone ancora vaccinazioni, visite, farmaci o
-            allergie come dati separati. Puoi utilizzare i documenti e i
-            promemoria disponibili.
-          </Text>
+          <Text style={s.sectionTitle}>{t('health')}</Text>
+          <Text style={s.emptyText}>{t('health_description')}</Text>
           <Button
-            label="Apri documenti"
+            label={t('open_documents')}
             onPress={onOpenDocuments}
             variant="secondary"
             fullWidth={false}
           />
           <Button
-            label="Promemoria"
+            label={t('reminders')}
             onPress={() => setPicker(true)}
             variant="ghost"
             fullWidth={false}
@@ -193,16 +168,13 @@ export function PetDetailScreen({
         </View>
       ) : (
         <View style={s.empty}>
-          <Text style={s.sectionTitle}>Attività</Text>
-          <Text style={s.emptyText}>
-            Non esiste ancora un activity log per animale nel backend. Quando
-            sarà disponibile, verrà mostrato qui.
-          </Text>
+          <Text style={s.sectionTitle}>{t('activity')}</Text>
+          <Text style={s.emptyText}>{t('activity_description')}</Text>
         </View>
       )}
       <Pressable onPress={askDelete} style={s.delete}>
         <Ionicons name="trash-outline" color={colors.error} size={18} />
-        <Text style={s.deleteText}>Elimina profilo animale</Text>
+        <Text style={s.deleteText}>{t('delete_pet_profile')}</Text>
       </Pressable>
       <FamilyPickerModal
         visible={picker}
@@ -245,29 +217,29 @@ const s = StyleSheet.create({
   content: {
     padding: spacing.xl,
     maxWidth: 900,
-    alignSelf: "center",
-    width: "100%",
+    alignSelf: 'center',
+    width: '100%',
   },
   center: {
     flex: 1,
     gap: spacing.lg,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: spacing.xl,
     backgroundColor: colors.background,
   },
   top: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: spacing.xxl,
   },
-  back: { minHeight: 44, flexDirection: "row", alignItems: "center" },
+  back: { minHeight: 44, flexDirection: 'row', alignItems: 'center' },
   backText: { ...typography.label, color: colors.primary },
   hero: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: spacing.lg,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: spacing.xl,
   },
   name: { ...typography.display },
@@ -275,7 +247,7 @@ const s = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     marginTop: spacing.xs,
-    textTransform: "capitalize",
+    textTransform: 'capitalize',
   },
   status: {
     ...typography.caption,
@@ -283,7 +255,7 @@ const s = StyleSheet.create({
     marginTop: spacing.sm,
   },
   tabs: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -291,9 +263,9 @@ const s = StyleSheet.create({
   },
   tab: {
     minHeight: 44,
-    justifyContent: "center",
+    justifyContent: 'center',
     borderBottomWidth: 2,
-    borderBottomColor: "transparent",
+    borderBottomColor: 'transparent',
   },
   tabActive: { borderBottomColor: colors.primary },
   tabText: { ...typography.label, color: colors.textMuted },
@@ -304,8 +276,8 @@ const s = StyleSheet.create({
   panelText: { ...typography.bodySmall, marginBottom: spacing.sm },
   row: {
     minHeight: 72,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -315,8 +287,8 @@ const s = StyleSheet.create({
     width: 36,
     borderRadius: radius.sm,
     backgroundColor: colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rowTitle: { ...typography.bodyMedium },
   rowValue: { ...typography.caption, marginTop: spacing.xxs },
@@ -325,8 +297,8 @@ const s = StyleSheet.create({
   emptyText: { ...typography.bodySmall, color: colors.textSecondary },
   delete: {
     minHeight: 44,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
     marginTop: spacing.xxl,
   },

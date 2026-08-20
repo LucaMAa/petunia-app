@@ -1,19 +1,14 @@
-import React, { useEffect } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Avatar } from "../../components/ui/Avatar";
-import { Button } from "../../components/ui/Button";
-import { useAuth } from "../../context/AuthContext";
-import { usePets } from "../../hooks/usePets";
-import { colors, radius, spacing, typography } from "../../styles/theme";
-import { Pet } from "../../types";
+import React, { useEffect } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Avatar } from '../../components/ui/Avatar';
+import { Button } from '../../components/ui/Button';
+import { useAuth } from '../../context/AuthContext';
+import { usePets } from '../../hooks/usePets';
+import { colors, radius, spacing, typography } from '../../styles/theme';
+import { Pet } from '../../types';
+import { useLocalization } from '../../context/LocalizationContext';
+import { Header, PetRow, Timeline } from './components';
 export function OverviewScreen({
   attentionCount,
   onOpenPets,
@@ -31,47 +26,37 @@ export function OverviewScreen({
     load();
   }, [load]);
   const hour = new Date().getHours();
+  const { t } = useLocalization();
   const greeting =
-    hour < 12 ? "Buongiorno" : hour < 18 ? "Buon pomeriggio" : "Buonasera";
-  
+    hour < 12 ? t('greeting_morning') : hour < 18 ? t('greeting_afternoon') : t('greeting_evening');
+
   return (
-    <ScrollView
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
+    <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
         <Text style={styles.greeting}>
           {greeting}
-          {user?.first_name ? `, ${user.first_name}` : ""}.
+          {user?.first_name ? `, ${user.first_name}` : ''}.
         </Text>
-        <Text style={styles.heroCopy}>
-          Ecco ciò che merita attenzione nella tua famiglia.
-        </Text>
+        <Text style={styles.heroCopy}>{t('overview_copy')}</Text>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onOpenAlerts}
-        style={styles.focus}
-      >
+      <Pressable accessibilityRole="button" onPress={onOpenAlerts} style={styles.focus}>
         <View style={styles.focusCopy}>
-          <Text style={styles.eyebrow}>Alert e promemoria</Text>
+          <Text style={styles.eyebrow}>{t('alerts_and_reminders')}</Text>
           <Text style={styles.focusTitle}>
             {attentionCount
-              ? `${attentionCount} attività richiedono attenzione`
-              : "Tutto sotto controllo"}
+              ? `${attentionCount} ${t('attention_activities')}`
+              : t('all_under_control')}
           </Text>
           <Text style={styles.focusText}>
-            {attentionCount
-              ? "Apri gli alert per gestire le attività che richiedono un’azione."
-              : "Non ci sono alert in sospeso."}
+            {attentionCount ? t('open_alerts_to_manage') : t('no_pending_alerts')}
           </Text>
         </View>
         <View style={styles.metric}>
           <Text style={styles.metricValue}>{attentionCount}</Text>
-          <Text style={styles.metricLabel}>alert</Text>
+          <Text style={styles.metricLabel}>{t('alerts')}</Text>
         </View>
       </Pressable>
-      <Header title="I tuoi animali" action="Gestisci" onAction={onOpenPets} />
+      <Header title={t('pets_title')} action={t('manage')} onAction={onOpenPets} />
       {isLoading ? (
         <ActivityIndicator color={colors.primary} style={styles.loader} />
       ) : pets.length ? (
@@ -84,115 +69,43 @@ export function OverviewScreen({
         <View style={styles.empty}>
           <Ionicons name="paw-outline" size={22} color={colors.primary} />
           <View style={styles.emptyCopy}>
-            <Text style={styles.emptyTitle}>Nessun animale ancora</Text>
-            <Text style={styles.emptyText}>
-              Aggiungi il primo profilo per organizzare salute, documenti e
-              promemoria.
-            </Text>
+            <Text style={styles.emptyTitle}>{t('no_pets_title')}</Text>
+            <Text style={styles.emptyText}>{t('no_pets_copy')}</Text>
           </View>
-          <Button
-            label="Aggiungi"
-            onPress={onOpenPets}
-            fullWidth={false}
-            size="sm"
-          />
+          <Button label={t('add_pet')} onPress={onOpenPets} fullWidth={false} size="sm" />
         </View>
       )}
-      <Header title="Spazio famiglia" action="Apri" onAction={onOpenFamily} />
+      <Header title={t('family_space')} action={t('open')} onAction={onOpenFamily} />
       <Pressable onPress={onOpenFamily} style={styles.familyRow}>
         <View style={styles.iconBox}>
           <Ionicons name="people-outline" size={18} color={colors.primary} />
         </View>
         <View style={styles.rowCopy}>
-          <Text style={styles.rowTitle}>La mia famiglia</Text>
-          <Text style={styles.rowMeta}>Membri, ruoli e animali condivisi</Text>
+          <Text style={styles.rowTitle}>{t('my_family')}</Text>
+          <Text style={styles.rowMeta}>{t('family_members')}</Text>
         </View>
         <Ionicons name="chevron-forward" color={colors.textMuted} size={18} />
       </Pressable>
-      <Header title="In primo piano" />
+      <Header title={t('featured')} />
       <View style={styles.rows}>
         <Timeline
           icon="calendar-outline"
-          title="Prossimi appuntamenti"
-          text="Il backend attuale gestisce promemoria, non appuntamenti veterinari separati."
+          title={t('upcoming_appointments')}
+          text={t('appointment_copy')}
         />
         <Timeline
           icon="document-text-outline"
-          title="Documenti sanitari"
-          text="I documenti sono disponibili dal profilo di ciascun animale."
+          title={t('health_documents')}
+          text={t('health_documents_copy')}
         />
         <Timeline
           icon="time-outline"
-          title="Attività recente"
-          text="Lo storico attività non è ancora fornito dal backend."
+          title={t('recent_activities')}
+          text={t('recent_activities_copy')}
           last
         />
       </View>
     </ScrollView>
-  );
-}
-function Header({
-  title,
-  action,
-  onAction,
-}: {
-  title: string;
-  action?: string;
-  onAction?: () => void;
-}) {
-  return (
-    <View style={styles.header}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {action ? (
-        <Pressable onPress={onAction}>
-          <Text style={styles.action}>{action}</Text>
-        </Pressable>
-      ) : null}
-    </View>
-  );
-}
-function PetRow({ pet }: { pet: Pet }) {
-  return (
-    <View style={styles.row}>
-      <Avatar
-        name={pet.name}
-        uri={pet.avatar_file_id ?? undefined}
-        size={46}
-      />
-      <View style={styles.rowCopy}>
-        <Text style={styles.rowTitle}>{pet.name}</Text>
-        <Text style={styles.rowMeta}>
-          {[pet.species, pet.breed].filter(Boolean).join(" · ")}
-        </Text>
-      </View>
-      <View style={styles.status}>
-        <View style={styles.dot} />
-        <Text style={styles.statusText}>In regola</Text>
-      </View>
-    </View>
-  );
-}
-function Timeline({
-  icon,
-  title,
-  text,
-  last,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  text: string;
-  last?: boolean;
-}) {
-  return (
-    <View style={[styles.row, last && styles.rowLast]}>
-      <View style={styles.iconBox}>
-        <Ionicons name={icon} size={18} color={colors.primary} />
-      </View>
-      <View style={styles.rowCopy}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.rowMeta}>{text}</Text>
-      </View>
-    </View>
   );
 }
 const styles = StyleSheet.create({
@@ -200,8 +113,8 @@ const styles = StyleSheet.create({
     padding: spacing.xxl,
     paddingBottom: spacing.xxxl,
     maxWidth: 980,
-    width: "100%",
-    alignSelf: "center",
+    width: '100%',
+    alignSelf: 'center',
   },
   hero: { marginBottom: spacing.xxl },
   greeting: { ...typography.display },
@@ -218,8 +131,8 @@ const styles = StyleSheet.create({
     borderLeftColor: colors.primary,
     borderRadius: radius.lg,
     padding: spacing.xl,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: spacing.xxxl,
   },
   focusCopy: { flex: 1, paddingRight: spacing.lg },
@@ -228,17 +141,17 @@ const styles = StyleSheet.create({
   focusText: { ...typography.bodySmall, marginTop: spacing.sm },
   metric: {
     minWidth: 72,
-    alignItems: "center",
+    alignItems: 'center',
     borderLeftWidth: 1,
     borderLeftColor: colors.border,
     paddingLeft: spacing.lg,
   },
-  metricValue: { fontSize: 32, fontWeight: "700", color: colors.primary },
+  metricValue: { fontSize: 32, fontWeight: '700', color: colors.primary },
   metricLabel: { ...typography.caption },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "baseline",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
     marginBottom: spacing.md,
   },
   sectionTitle: { ...typography.h3 },
@@ -251,8 +164,8 @@ const styles = StyleSheet.create({
   },
   row: {
     minHeight: 74,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -260,8 +173,8 @@ const styles = StyleSheet.create({
   rowLast: { borderBottomWidth: 0 },
   familyRow: {
     minHeight: 74,
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.md,
     borderTopWidth: 1,
     borderBottomWidth: 1,
@@ -273,9 +186,9 @@ const styles = StyleSheet.create({
   rowMeta: {
     ...typography.caption,
     marginTop: spacing.xxs,
-    textTransform: "capitalize",
+    textTransform: 'capitalize',
   },
-  status: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+  status: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   dot: {
     width: 6,
     height: 6,
@@ -284,14 +197,14 @@ const styles = StyleSheet.create({
   },
   statusText: { ...typography.caption, color: colors.success },
   empty: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    borderStyle: "dashed",
+    borderStyle: 'dashed',
     padding: spacing.xl,
     borderRadius: radius.lg,
-    alignItems: "center",
+    alignItems: 'center',
     marginBottom: spacing.xxxl,
   },
   emptyCopy: { flex: 1 },
@@ -302,7 +215,7 @@ const styles = StyleSheet.create({
     height: 34,
     borderRadius: radius.sm,
     backgroundColor: colors.primaryLight,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -1,8 +1,11 @@
-export type UserStatus = "enabled" | "disabled";
-export type FamilyRole = "owner" | "member";
-export type InviteStatus = "pending" | "accepted" | "declined";
-export type ReportType = | "poisoned_bait" | "dog_area" | "danger" | "interesting" | "vet";
-export type ReportStatus = "pending" | "approved" | "rejected";
+export type UserStatus = 'enabled' | 'disabled';
+export type FamilyRole = 'owner' | 'member';
+export type InviteStatus = 'pending' | 'accepted' | 'declined';
+export type ReportType = 'poisoned_bait' | 'dog_area' | 'danger' | 'interesting' | 'vet';
+export type ReportStatus = 'pending' | 'approved' | 'rejected';
+export type ActivityType = 'walk' | 'run' | 'hike' | 'park' | 'free';
+export type ActivityStatus = 'active' | 'paused' | 'completed' | 'cancelled';
+export type ActivityPrivacy = 'private' | 'stats_only' | 'shared';
 
 export interface UploadedFile {
   id: string;
@@ -24,13 +27,11 @@ export interface User {
   email: string;
   status: UserStatus;
   avatar_file_id?: string | null;
-  /** Populated when the backend preloads the Avatar association. */
   avatar?: UploadedFile | null;
   created_at: string;
   updated_at: string;
 }
 
-/** Convenience helper — returns the avatar URL or empty string. */
 export function userAvatarUrl(user: User): string {
   return user.avatar?.url ?? '';
 }
@@ -49,13 +50,7 @@ export interface Pet {
   birth_date: string | null;
   gender: string;
   avatar_file_id?: string | null;
-  /** Populated when the backend preloads the Avatar association. */
   avatar?: UploadedFile | null;
-  /**
-   * avatar_url is still included in API responses as a derived convenience
-   * field (built server-side from the joined UploadedFile.PublicURL).
-   * Use this for display; use the upload API to change it.
-   */
   avatar_url: string;
   owners?: User[];
   created_at: string;
@@ -121,6 +116,8 @@ export interface Family {
   id: string;
   name: string;
   members?: FamilyMember[];
+  avatar_file_id?: string | null;
+  avatar?: UploadedFile | null;
   created_at: string;
   updated_at: string;
   pets?: Pet[];
@@ -162,7 +159,7 @@ export interface MapReport {
   distance_m?: number;
   user?: {
     first_name: string;
-    last_name: string
+    last_name: string;
   };
 }
 
@@ -173,4 +170,35 @@ export interface CreateReportDto {
   lat: number;
   lng: number;
   image_urls?: string[];
+}
+
+export interface ActivityPoint {
+  lat: number;
+  lng: number;
+  recorded_at: string;
+  accuracy_m?: number;
+}
+
+export interface Activity {
+  id: string;
+  pet_id?: string | null;
+  type: ActivityType;
+  status: ActivityStatus;
+  privacy: ActivityPrivacy;
+  started_at: string;
+  ended_at?: string | null;
+  paused_at?: string | null;
+  paused_duration_s?: number;
+  duration_s: number;
+  distance_m: number;
+  points?: ActivityPoint[];
+  pet?: Pet | null;
+  created_at: string;
+}
+
+export interface StartActivityDto {
+  pet_id?: string;
+  type: ActivityType;
+  privacy: ActivityPrivacy;
+  started_at: string;
 }

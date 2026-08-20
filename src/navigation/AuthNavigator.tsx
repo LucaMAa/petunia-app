@@ -16,8 +16,7 @@ export function AuthNavigator() {
       />
     );
 
-  if (route === 'forgot')
-    return <ForgotPasswordScreen onBack={() => setRoute('login')} />;
+  if (route === 'forgot') return <ForgotPasswordScreen onBack={() => setRoute('login')} />;
 
   return (
     <LoginScreen

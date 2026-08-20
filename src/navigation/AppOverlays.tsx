@@ -7,7 +7,7 @@ import { ReminderFiredBanner, ReminderAckedBanner } from '../components/ui/Remin
 import { PendingAlertsScreen } from '../screens/reminder/PendingAlertsScreen';
 
 import { AppOverlaysState } from '../hooks/useAppOverlays';
-import { colors, spacing, shadow } from '../styles/theme';
+import { colors, spacing, shadow, layout } from '../styles/theme';
 
 type Props = Pick<
   AppOverlaysState,
@@ -51,7 +51,6 @@ export function AppOverlays({
 
   return (
     <>
-      {/* ── Pending alerts full-screen overlay ── */}
       {showPendingAlerts && (
         <View style={StyleSheet.absoluteFillObject}>
           <PendingAlertsScreen
@@ -64,7 +63,6 @@ export function AppOverlays({
         </View>
       )}
 
-      {/* ── Reminder fired banner ── */}
       {firedReminder && (
         <ReminderFiredBanner
           payload={firedReminder}
@@ -73,36 +71,27 @@ export function AppOverlays({
         />
       )}
 
-      {/* ── Reminder acked banner ── */}
-      {ackedReminder && (
-        <ReminderAckedBanner
-          payload={ackedReminder}
-          onDismiss={dismissAcked}
-        />
-      )}
+      {ackedReminder && <ReminderAckedBanner payload={ackedReminder} onDismiss={dismissAcked} />}
 
-      {/* ── Invite banner ── */}
       {invites.length > 0 && !showPendingAlerts && (
-        <View style={styles.inviteBannerContainer}>
-          <InviteBanner
-            invite={invites[0]}
-            onAccept={handleAccept}
-            onDecline={handleDecline}
-          />
+        <View
+          style={[
+            styles.inviteBannerContainer,
+            { bottom: insets.bottom + layout.tabBarHeight + spacing.md },
+          ]}
+        >
+          <InviteBanner invite={invites[0]} onAccept={handleAccept} onDecline={handleDecline} />
         </View>
       )}
 
-      {/* ── Floating bell — visible only when there are pending alerts ── */}
       {pendingCount > 0 && !showPendingAlerts && (
         <TouchableOpacity
-          style={[styles.bellFab, { bottom: insets.bottom + 80 }]}
+          style={[styles.bellFab, { bottom: insets.bottom + layout.tabBarHeight + spacing.lg }]}
           onPress={openPendingAlerts}
         >
           <Text style={styles.bellFabIcon}>🔔</Text>
           <View style={styles.bellBadge}>
-            <Text style={styles.bellBadgeText}>
-              {pendingCount > 9 ? '9+' : pendingCount}
-            </Text>
+            <Text style={styles.bellBadgeText}>{pendingCount > 9 ? '9+' : pendingCount}</Text>
           </View>
         </TouchableOpacity>
       )}

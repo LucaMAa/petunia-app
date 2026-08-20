@@ -39,9 +39,9 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
   const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   useEffect(() => {
-    setReceived(prev => {
-      const existing = new Set(prev.map(i => i.id));
-      const newOnes = liveInvites.filter(i => !existing.has(i.id));
+    setReceived((prev) => {
+      const existing = new Set(prev.map((i) => i.id));
+      const newOnes = liveInvites.filter((i) => !existing.has(i.id));
       return [...newOnes, ...prev];
     });
   }, [liveInvites]);
@@ -51,8 +51,10 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
     try {
       const data = await familiesApi.getPendingInvites();
       setReceived(data ?? []);
-    } catch {}
-    finally { setIsLoadingReceived(false); }
+    } catch {
+    } finally {
+      setIsLoadingReceived(false);
+    }
   }, []);
 
   const loadSent = useCallback(async () => {
@@ -60,18 +62,24 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
     try {
       const data = await familiesApi.getSentInvites();
       setSent(data ?? []);
-    } catch {}
-    finally { setIsLoadingSent(false); }
+    } catch {
+    } finally {
+      setIsLoadingSent(false);
+    }
   }, []);
 
-  useEffect(() => { loadReceived(); }, [loadReceived]);
-  useEffect(() => { if (tab === 'sent') loadSent(); }, [tab, loadSent]);
+  useEffect(() => {
+    loadReceived();
+  }, [loadReceived]);
+  useEffect(() => {
+    if (tab === 'sent') loadSent();
+  }, [tab, loadSent]);
 
   async function handleRespond(invite: FamilyInvite, accepted: boolean) {
     setRespondingId(invite.id);
     try {
       await familiesApi.respondToInvite(invite.id, accepted);
-      setReceived(prev => prev.filter(i => i.id !== invite.id));
+      setReceived((prev) => prev.filter((i) => i.id !== invite.id));
       onInviteResponded(invite.id);
     } catch (e) {
       showAlert(e instanceof Error ? e.message : 'Riprova', { type: 'error' });
@@ -82,21 +90,17 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
 
   function confirmCancel(invite: FamilyInvite) {
     const name = invite.family?.name ?? 'questa famiglia';
-    Alert.alert(
-      'Annullare l\'invito?',
-      `Vuoi ritirare l'invito per ${name}?`,
-      [
-        { text: 'No', style: 'cancel' },
-        { text: 'Sì, annulla', style: 'destructive', onPress: () => handleCancel(invite) },
-      ]
-    );
+    Alert.alert("Annullare l'invito?", `Vuoi ritirare l'invito per ${name}?`, [
+      { text: 'No', style: 'cancel' },
+      { text: 'Sì, annulla', style: 'destructive', onPress: () => handleCancel(invite) },
+    ]);
   }
 
   async function handleCancel(invite: FamilyInvite) {
     setCancellingId(invite.id);
     try {
       await familiesApi.cancelInvite(invite.id);
-      setSent(prev => prev.filter(i => i.id !== invite.id));
+      setSent((prev) => prev.filter((i) => i.id !== invite.id));
     } catch (e) {
       showAlert(e instanceof Error ? e.message : 'Riprova', { type: 'error' });
     } finally {
@@ -113,11 +117,10 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
-      {/* NAV */}
       <View style={styles.nav}>
         <TouchableOpacity onPress={onBack} style={styles.navBtn}>
           <Text style={styles.navBack}>‹</Text>
-          <Text style={styles.navLabel}>{t('back','Indietro')}</Text>
+          <Text style={styles.navLabel}>{t('back', 'Indietro')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -164,10 +167,7 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
 
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={[
-          styles.list,
-          { paddingBottom: insets.bottom + spacing.xxl },
-        ]}
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + spacing.xxl }]}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -186,12 +186,11 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
               </View>
             ) : received.length === 0 ? (
               <EmptyState
-                icon="📭"
                 title="Nessun invito"
                 subtitle="Quando qualcuno ti inviterà in una famiglia, lo vedrai qui"
               />
             ) : (
-              received.map(invite => (
+              received.map((invite) => (
                 <ReceivedCard
                   key={invite.id}
                   invite={invite}
@@ -212,12 +211,11 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
               </View>
             ) : sent.length === 0 ? (
               <EmptyState
-                icon="📮"
                 title="Nessun invito inviato"
                 subtitle="Gli inviti in attesa di risposta appariranno qui"
               />
             ) : (
-              sent.map(invite => (
+              sent.map((invite) => (
                 <SentCard
                   key={invite.id}
                   invite={invite}
@@ -234,7 +232,10 @@ export function InvitesScreen({ liveInvites, onInviteResponded, onBack }: Props)
 }
 
 function ReceivedCard({
-  invite, isResponding, onAccept, onDecline,
+  invite,
+  isResponding,
+  onAccept,
+  onDecline,
 }: {
   invite: FamilyInvite;
   isResponding: boolean;
@@ -308,9 +309,12 @@ const rcStyles = StyleSheet.create({
   inner: { flex: 1, padding: spacing.md, gap: spacing.md },
   topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   iconBox: {
-    width: 52, height: 52, borderRadius: radius.md,
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   info: { flex: 1, gap: 3 },
   label: { ...typography.label, color: colors.primary },
@@ -322,25 +326,44 @@ const rcStyles = StyleSheet.create({
   expiryDate: { ...typography.caption, fontWeight: '700', color: colors.textSecondary },
   actions: { flexDirection: 'row', gap: spacing.sm },
   btnDecline: {
-    flex: 1, height: 38, borderRadius: radius.md,
-    borderWidth: 1.5, borderColor: colors.border,
-    alignItems: 'center', justifyContent: 'center',
+    flex: 1,
+    height: 38,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: colors.backgroundAlt,
   },
-  btnDeclineText: { ...typography.body, fontWeight: '600', color: colors.textSecondary, fontSize: 14 },
+  btnDeclineText: {
+    ...typography.body,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
   btnAccept: {
-    flex: 2, height: 38, borderRadius: radius.md,
+    flex: 2,
+    height: 38,
+    borderRadius: radius.md,
     backgroundColor: colors.primary,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     ...shadow.brand,
   },
-  btnAcceptText: { ...typography.body, fontWeight: '700', color: colors.textOnPrimary, fontSize: 14 },
+  btnAcceptText: {
+    ...typography.body,
+    fontWeight: '700',
+    color: colors.textOnPrimary,
+    fontSize: 14,
+  },
   loadingRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, height: 38 },
   loadingText: { ...typography.bodySmall, color: colors.textMuted },
 });
 
 function SentCard({
-  invite, isCancelling, onCancel,
+  invite,
+  isCancelling,
+  onCancel,
 }: {
   invite: FamilyInvite;
   isCancelling: boolean;
@@ -370,7 +393,12 @@ function SentCard({
       {isCancelling ? (
         <ActivityIndicator size="small" color={colors.error} />
       ) : (
-        <TouchableOpacity onPress={onCancel} style={scStyles.cancelBtn} hitSlop={8} activeOpacity={0.75}>
+        <TouchableOpacity
+          onPress={onCancel}
+          style={scStyles.cancelBtn}
+          hitSlop={8}
+          activeOpacity={0.75}
+        >
           <Text style={scStyles.cancelText}>Annulla</Text>
         </TouchableOpacity>
       )}
@@ -380,17 +408,25 @@ function SentCard({
 
 const scStyles = StyleSheet.create({
   card: {
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border,
-    padding: spacing.md, marginBottom: spacing.sm, gap: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    gap: spacing.md,
     ...shadow.xs,
   },
   left: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   iconBox: {
-    width: 46, height: 46, borderRadius: radius.md,
+    width: 46,
+    height: 46,
+    borderRadius: radius.md,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   info: { flex: 1, gap: 3 },
   familyName: { ...typography.h4 },
@@ -399,18 +435,18 @@ const scStyles = StyleSheet.create({
   pendingDot: { width: 7, height: 7, borderRadius: 99, backgroundColor: colors.accent },
   statusText: { ...typography.caption, color: colors.accent, fontWeight: '600' },
   cancelBtn: {
-    paddingHorizontal: spacing.sm, paddingVertical: spacing.xs,
-    borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.error,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.error,
   },
   cancelText: { ...typography.caption, color: colors.error, fontWeight: '700' },
 });
 
-function EmptyState({ icon, title, subtitle }: { icon: string; title: string; subtitle: string }) {
+function EmptyState({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <View style={emStyles.container}>
-      <View style={emStyles.iconBox}>
-        <Text style={emStyles.icon}>{icon}</Text>
-      </View>
       <Text style={emStyles.title}>{title}</Text>
       <Text style={emStyles.subtitle}>{subtitle}</Text>
     </View>
@@ -419,14 +455,21 @@ function EmptyState({ icon, title, subtitle }: { icon: string; title: string; su
 
 const emStyles = StyleSheet.create({
   container: {
-    alignItems: 'center', justifyContent: 'center',
-    gap: spacing.md, paddingTop: spacing.xxl, paddingHorizontal: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.md,
+    paddingTop: spacing.xxl,
+    paddingHorizontal: spacing.xl,
   },
   iconBox: {
-    width: 100, height: 100, borderRadius: radius.xxl,
+    width: 100,
+    height: 100,
+    borderRadius: radius.xxl,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: colors.primaryMid,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.primaryMid,
   },
   icon: { fontSize: 48 },
   title: { ...typography.h2, textAlign: 'center' },
@@ -453,20 +496,31 @@ const styles = StyleSheet.create({
   tabs: {
     flexDirection: 'row',
     backgroundColor: colors.backgroundAlt,
-    borderRadius: radius.xl, padding: 4,
-    borderWidth: 1, borderColor: colors.border,
+    borderRadius: radius.xl,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   tabBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingVertical: spacing.xs, borderRadius: radius.lg, gap: 6,
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xs,
+    borderRadius: radius.lg,
+    gap: 6,
   },
   tabBtnActive: { backgroundColor: colors.surface, ...shadow.xs },
   tabBtnText: { ...typography.body, fontWeight: '600', color: colors.textMuted, fontSize: 14 },
   tabBtnTextActive: { color: colors.primaryDeep },
   badge: {
-    minWidth: 18, height: 18, borderRadius: 99,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 99,
     backgroundColor: colors.primary,
-    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
   },
   badgeMuted: { backgroundColor: colors.primaryLight },
   badgeText: { fontSize: 10, fontWeight: '800', color: colors.textOnPrimary },

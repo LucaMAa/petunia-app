@@ -21,24 +21,24 @@ export function ErrorBanner({ message }: ErrorBannerProps) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection:  'row',
+    flexDirection: 'row',
     backgroundColor: colors.errorLight,
-    borderRadius:   radius.md,
-    borderWidth:    1,
-    borderColor:    '#F0CECE',
-    overflow:       'hidden',
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#F0CECE',
+    overflow: 'hidden',
   },
   accent: {
-    width:           4,
+    width: 4,
     backgroundColor: colors.error,
   },
   inner: {
-    flex:          1,
+    flex: 1,
     flexDirection: 'row',
-    alignItems:    'center',
-    gap:           spacing.xs,
-    padding:       spacing.sm,
-    paddingLeft:   spacing.md,
+    alignItems: 'center',
+    gap: spacing.xs,
+    padding: spacing.sm,
+    paddingLeft: spacing.md,
   },
   icon: {
     fontSize: 14,
@@ -46,6 +46,6 @@ const styles = StyleSheet.create({
   text: {
     ...typography.bodySmall,
     color: colors.error,
-    flex:  1,
+    flex: 1,
   },
 });

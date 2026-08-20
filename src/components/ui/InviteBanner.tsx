@@ -22,23 +22,16 @@ export function InviteBanner({ invite, onAccept, onDecline }: Props) {
         <View style={styles.text}>
           <Text style={styles.title}>Invito famiglia</Text>
           <Text style={styles.sub}>
-            <Text style={styles.bold}>{inviterName}</Text>
-            {' '}ti invita in{' '}
+            <Text style={styles.bold}>{inviterName}</Text> ti invita in{' '}
             <Text style={styles.bold}>{invite.family?.name ?? '…'}</Text>
           </Text>
         </View>
       </View>
       <View style={styles.actions}>
-        <TouchableOpacity
-          onPress={() => onDecline(invite)}
-          style={[styles.btn, styles.btnDecline]}
-        >
+        <TouchableOpacity onPress={() => onDecline(invite)} style={[styles.btn, styles.btnDecline]}>
           <Text style={styles.btnDeclineText}>Rifiuta</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => onAccept(invite)}
-          style={[styles.btn, styles.btnAccept]}
-        >
+        <TouchableOpacity onPress={() => onAccept(invite)} style={[styles.btn, styles.btnAccept]}>
           <Text style={styles.btnAcceptText}>Accetta</Text>
         </TouchableOpacity>
       </View>
@@ -65,11 +58,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     padding: spacing.md,
   },
-  icon:  { fontSize: 28 },
-  text:  { flex: 1 },
+  icon: { fontSize: 28 },
+  text: { flex: 1 },
   title: { ...typography.label, color: colors.primary },
-  sub:   { ...typography.body, marginTop: 2 },
-  bold:  { fontWeight: '700' },
+  sub: { ...typography.body, marginTop: 2 },
+  bold: { fontWeight: '700' },
   actions: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -82,8 +75,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     alignItems: 'center',
   },
-  btnDecline:     { backgroundColor: colors.backgroundAlt, borderWidth: 1, borderColor: colors.border },
+  btnDecline: { backgroundColor: colors.backgroundAlt, borderWidth: 1, borderColor: colors.border },
   btnDeclineText: { ...typography.body, fontWeight: '600', color: colors.textSecondary },
-  btnAccept:      { backgroundColor: colors.primary },
-  btnAcceptText:  { ...typography.body, fontWeight: '700', color: colors.textOnPrimary },
+  btnAccept: { backgroundColor: colors.primary },
+  btnAcceptText: { ...typography.body, fontWeight: '700', color: colors.textOnPrimary },
 });

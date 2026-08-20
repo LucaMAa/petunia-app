@@ -1,7 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import {
-  View, Text, Modal, StyleSheet, FlatList,
-  TouchableOpacity, ActivityIndicator,
+  View,
+  Text,
+  Modal,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { User } from '../../types';
 import { familiesApi } from '../../api/families';
@@ -9,6 +14,7 @@ import { TextInput } from '../../components/ui/TextInput';
 import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { colors, spacing, typography, radius, shadow } from '../../styles/theme';
+import { useLocalization } from '../../context/LocalizationContext';
 
 interface Props {
   visible: boolean;
@@ -23,6 +29,7 @@ export function UserSearchModal({ visible, familyId, onClose, onInvited }: Props
   const [isSearching, setIsSearching] = useState(false);
   const [inviting, setInviting] = useState<string | null>(null);
   const [searchError, setSearchError] = useState('');
+  const { t } = useLocalization();
 
   const search = useCallback(async (q: string) => {
     setQuery(q);
@@ -47,9 +54,9 @@ export function UserSearchModal({ visible, familyId, onClose, onInvited }: Props
     try {
       await familiesApi.invite(familyId, { user_id: user.id });
       onInvited();
-      setResults(prev => prev.filter(u => u.id !== user.id));
+      setResults((prev) => prev.filter((u) => u.id !== user.id));
     } catch (e) {
-      setResults(prev => prev.filter(u => u.id !== user.id));
+      setResults((prev) => prev.filter((u) => u.id !== user.id));
     } finally {
       setInviting(null);
     }
@@ -70,30 +77,25 @@ export function UserSearchModal({ visible, familyId, onClose, onInvited }: Props
       onRequestClose={handleClose}
     >
       <View style={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Invita membro</Text>
+          <Text style={styles.title}>{t('invite_member')}</Text>
           <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
             <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
         </View>
-
-        {/* Search input */}
         <View style={styles.searchBox}>
           <TextInput
-            placeholder="Cerca per nome o cognome…"
+            placeholder={t('search_users')}
             value={query}
             onChangeText={search}
             autoFocus
-            leftElement={<Text style={{ fontSize: 16 }}>🔍</Text>}
+            leftElement={<Text style={{ fontSize: 16 }}></Text>}
             error={searchError}
           />
           {query.length > 0 && query.length < 2 && (
-            <Text style={styles.hint}>Inserisci almeno 2 caratteri</Text>
+            <Text style={styles.hint}>{t('search_hint')}</Text>
           )}
         </View>
-
-        {/* Results */}
         {isSearching ? (
           <View style={styles.center}>
             <ActivityIndicator color={colors.primary} />
@@ -101,21 +103,18 @@ export function UserSearchModal({ visible, familyId, onClose, onInvited }: Props
         ) : (
           <FlatList
             data={results}
-            keyExtractor={u => u.id}
+            keyExtractor={(u) => u.id}
             contentContainerStyle={styles.list}
             ListEmptyComponent={
               query.length >= 2 && !isSearching ? (
                 <View style={styles.center}>
-                  <Text style={styles.emptyText}>Nessun utente trovato</Text>
+                  <Text style={styles.emptyText}>{t('no_users_found')}</Text>
                 </View>
               ) : null
             }
             renderItem={({ item }) => (
               <View style={styles.resultRow}>
-                <Avatar
-                  name={`${item.first_name} ${item.last_name}`}
-                  size={44}
-                />
+                <Avatar name={`${item.first_name} ${item.last_name}`} size={44} />
                 <View style={styles.resultInfo}>
                   <Text style={styles.resultName}>
                     {item.first_name} {item.last_name}
@@ -127,10 +126,11 @@ export function UserSearchModal({ visible, familyId, onClose, onInvited }: Props
                   style={styles.inviteBtn}
                   disabled={inviting === item.id}
                 >
-                  {inviting === item.id
-                    ? <ActivityIndicator size="small" color={colors.textOnPrimary} />
-                    : <Text style={styles.inviteBtnText}>Aggiungi</Text>
-                  }
+                  {inviting === item.id ? (
+                    <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                  ) : (
+                    <Text style={styles.inviteBtnText}>{t('invite')}</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             )}
@@ -153,19 +153,21 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  title:    { ...typography.h2 },
+  title: { ...typography.h2 },
   closeBtn: {
-    width: 32, height: 32,
+    width: 32,
+    height: 32,
     borderRadius: radius.pill,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   closeText: { color: colors.primaryDeep, fontWeight: '700' },
 
   searchBox: { padding: spacing.lg, paddingBottom: spacing.sm },
-  hint:      { ...typography.caption, color: colors.textMuted, marginTop: 4 },
+  hint: { ...typography.caption, color: colors.textMuted, marginTop: 4 },
 
-  center:    { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: spacing.xl },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: spacing.xl },
   emptyText: { ...typography.body, color: colors.textMuted },
 
   list: { paddingHorizontal: spacing.lg, gap: spacing.sm },
@@ -181,8 +183,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...shadow.xs,
   },
-  resultInfo:  { flex: 1 },
-  resultName:  { ...typography.bodyMedium },
+  resultInfo: { flex: 1 },
+  resultName: { ...typography.bodyMedium },
   resultEmail: { ...typography.caption, color: colors.textMuted },
 
   inviteBtn: {

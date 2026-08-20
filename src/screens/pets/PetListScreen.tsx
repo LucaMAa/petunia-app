@@ -17,6 +17,7 @@ import { usePets } from '../../hooks/usePets';
 import { PetCard } from '../../components/ui/PetCard';
 
 import { colors, spacing, typography, radius, shadow } from '../../styles/theme';
+import { useLocalization } from '../../context/LocalizationContext';
 
 interface Props {
   onCreatePet: () => void;
@@ -25,6 +26,7 @@ interface Props {
 
 export function PetListScreen({ onCreatePet, onSelectPet }: Props) {
   const insets = useSafeAreaInsets();
+  const { t } = useLocalization();
 
   const { pets, isLoading, error, load, remove } = usePets();
 
@@ -34,20 +36,16 @@ export function PetListScreen({ onCreatePet, onSelectPet }: Props) {
 
   const handleDelete = useCallback(
     (pet: Pet) => {
-      Alert.alert(
-        `Rimuovere ${pet.name}?`,
-        'Questa azione non può essere annullata.',
-        [
-          { text: 'Annulla', style: 'cancel' },
-          {
-            text: 'Elimina',
-            style: 'destructive',
-            onPress: () => remove(pet.id),
-          },
-        ]
-      );
+      Alert.alert(`${t('delete_pet', '')} ${pet.name}?`, `${t('delete_pet_confirmation', '')}`, [
+        { text: `${t('cancel', '')}`, style: 'cancel' },
+        {
+          text: `${t('delete', '')}`,
+          style: 'destructive',
+          onPress: () => remove(pet.id),
+        },
+      ]);
     },
-    [remove]
+    [remove],
   );
 
   if (isLoading && pets.length === 0) {
@@ -62,31 +60,28 @@ export function PetListScreen({ onCreatePet, onSelectPet }: Props) {
 
   const renderHeader = () => (
     <>
-      {/* HEADER */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.overline}>I tuoi amici</Text>
-          <Text style={styles.title}>I miei animali</Text>
+          <Text style={styles.overline}>{t('your_friends', '')}</Text>
+          <Text style={styles.title}>{t('my_pets', '')}</Text>
         </View>
 
         <TouchableOpacity onPress={onCreatePet} style={styles.addBtn}>
-          <Text style={styles.addBtnText}>＋ Aggiungi</Text>
+          <Text style={styles.addBtnText}>＋ {t('add_pet', '')}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* ERROR */}
       {!!error && (
         <View style={styles.errorBanner}>
           <Text style={styles.errorText}>⚠ {error}</Text>
         </View>
       )}
 
-      {/* COUNT */}
       {pets.length > 0 && (
         <View style={styles.countRow}>
           <View style={styles.countBadge}>
             <Text style={styles.countText}>
-              {pets.length} {pets.length === 1 ? 'animale' : 'animali'}
+              {pets.length} {pets.length === 1 ? t('pet', '') : t('pets', '')}
             </Text>
           </View>
         </View>
@@ -100,13 +95,11 @@ export function PetListScreen({ onCreatePet, onSelectPet }: Props) {
         <Text style={styles.emptyIcon}>🐾</Text>
       </View>
 
-      <Text style={styles.emptyTitle}>Nessun animale ancora</Text>
-      <Text style={styles.emptyText}>
-        Aggiungi il tuo primo amico peloso per iniziare!
-      </Text>
+      <Text style={styles.emptyTitle}>{t('no_pets_title', '')}</Text>
+      <Text style={styles.emptyText}>{t('no_pets_description', '')}</Text>
 
       <TouchableOpacity onPress={onCreatePet} style={styles.emptyBtn}>
-        <Text style={styles.emptyBtnText}>＋ Aggiungi animale</Text>
+        <Text style={styles.emptyBtnText}>＋ {t('add_pet', '')}</Text>
       </TouchableOpacity>
     </View>
   );

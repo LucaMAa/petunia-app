@@ -1,0 +1,87 @@
+name: Check
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - '**.ts'
+      - '**.tsx'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'eslint.config.js'
+      - '.prettierrc.json'
+      - '.github/workflows/frontend-check.yml'
+  pull_request:
+    branches: ['**']
+
+permissions:
+  contents: write
+
+jobs:
+  # ── 1) La CI formatta il codice al posto tuo e committa la correzione ──
+  autoformat:
+    name: Auto-format (prettier + eslint --fix)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Prettier --write
+        run: npm run format
+
+      - name: ESLint --fix
+        run: npm run lint:fix
+
+      - name: Commit automatico se qualcosa è stato riformattato
+        if: github.event_name == 'push'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'style: auto-format frontend (prettier + eslint --fix) [skip ci]'
+          file_pattern: '*.ts *.tsx'
+
+      - name: Verifica formattazione (solo PR da fork)
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork
+        run: npm run format:check
+
+  # ── 2) Lint, tipi, vulnerabilità, sul codice ormai già formattato ───────
+  check:
+    name: ESLint, TypeScript, npm audit
+    needs: autoformat
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codice (con l'eventuale commit di auto-format)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Verifica formattazione (deve già essere a posto)
+        run: npm run format:check
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: TypeScript (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Vulnerabilità dipendenze npm (npm audit)
+        run: npm run audit

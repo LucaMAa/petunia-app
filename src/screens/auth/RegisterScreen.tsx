@@ -15,6 +15,7 @@ import { Button } from '../../components/ui/Button';
 import { TextInput } from '../../components/ui/TextInput';
 import { ErrorBanner } from '../../components/ui/ErrorBanner';
 import { colors, spacing, typography } from '../../styles/theme';
+import { useLocalization } from '../../context/LocalizationContext';
 
 interface Props {
   onNavigateLogin: () => void;
@@ -34,6 +35,7 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
   const insets = useSafeAreaInsets();
   const { showAlert } = useAlert();
+  const { t } = useLocalization();
   const [form, setForm] = useState<FormState>({
     first_name: '',
     last_name: '',
@@ -73,7 +75,11 @@ export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
         email: form.email.trim().toLowerCase(),
         password: form.password,
       });
-      showAlert('Account created! You can now sign in.', { actionLabel: 'Sign in', onAction: onSuccess, type: 'success' });
+      showAlert('Account created! You can now sign in.', {
+        actionLabel: 'Sign in',
+        onAction: onSuccess,
+        type: 'success',
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Registration failed';
       if (msg.includes('already')) setError('An account with this email already exists.');
@@ -101,8 +107,8 @@ export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
       >
         <View style={styles.header}>
           <Text style={styles.logo}>🐾</Text>
-          <Text style={styles.title}>Create account</Text>
-          <Text style={styles.subtitle}>Join Petunia today</Text>
+          <Text style={styles.title}>{t('create_account')}</Text>
+          <Text style={styles.subtitle}>{t('join_today')}</Text>
         </View>
 
         <View style={styles.form}>
@@ -111,8 +117,8 @@ export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
           <View style={styles.row}>
             <View style={styles.half}>
               <TextInput
-                label="First name"
-                placeholder="Ada"
+                label={t('first_name')}
+                placeholder={t('first_name_placeholder')}
                 value={form.first_name}
                 onChangeText={set('first_name')}
                 autoComplete="given-name"
@@ -121,8 +127,8 @@ export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
             </View>
             <View style={styles.half}>
               <TextInput
-                label="Last name"
-                placeholder="Lovelace"
+                label={t('last_name')}
+                placeholder={t('last_name_placeholder')}
                 value={form.last_name}
                 onChangeText={set('last_name')}
                 autoComplete="family-name"
@@ -132,8 +138,8 @@ export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
           </View>
 
           <TextInput
-            label="Email"
-            placeholder="you@example.com"
+            label={t('email')}
+            placeholder={t('email_placeholder')}
             value={form.email}
             onChangeText={set('email')}
             keyboardType="email-address"
@@ -143,31 +149,31 @@ export function RegisterScreen({ onNavigateLogin, onSuccess }: Props) {
           />
 
           <TextInput
-            label="Password"
-            placeholder="Min. 8 characters"
+            label={t('password')}
+            placeholder={t('password_placeholder')}
             value={form.password}
             onChangeText={set('password')}
             isPassword
-            hint="At least 8 characters"
+            hint={t('password_hint')}
             error={errors.password}
           />
 
           <TextInput
-            label="Confirm password"
-            placeholder="Repeat password"
+            label={t('confirm_password')}
+            placeholder={t('confirm_password_placeholder')}
             value={form.confirm_password}
             onChangeText={set('confirm_password')}
             isPassword
             error={errors.confirm_password}
           />
 
-          <Button label="Create account" onPress={handleRegister} loading={isLoading} />
+          <Button label={t('create_account')} onPress={handleRegister} loading={isLoading} />
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+          <Text style={styles.footerText}>{t('already_have_account')}</Text>
           <TouchableOpacity onPress={onNavigateLogin}>
-            <Text style={styles.footerLink}>Sign in</Text>
+            <Text style={styles.footerLink}>{t('login')}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

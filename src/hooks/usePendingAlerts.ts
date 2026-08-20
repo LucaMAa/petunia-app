@@ -62,10 +62,9 @@ export function usePendingAlerts(): UsePendingAlertsReturn {
   }, [reload]);
 
   const addFromWs = useCallback((payload: ReminderFiredPayload) => {
-    setPending(prev => {
+    setPending((prev) => {
       const exists = prev.some(
-        p => p.reminder_id === payload.reminder_id &&
-             p.occurrence_key === payload.occurrence_key
+        (p) => p.reminder_id === payload.reminder_id && p.occurrence_key === payload.occurrence_key,
       );
       if (exists) return prev;
 
@@ -88,15 +87,13 @@ export function usePendingAlerts(): UsePendingAlertsReturn {
   }, []);
 
   const markAcked = useCallback((reminderId: string, occurrenceKey: string) => {
-    setPending(prev =>
-      prev.filter(
-        p => !(p.reminder_id === reminderId && p.occurrence_key === occurrenceKey)
-      )
+    setPending((prev) =>
+      prev.filter((p) => !(p.reminder_id === reminderId && p.occurrence_key === occurrenceKey)),
     );
   }, []);
 
   const markAckedByReminder = useCallback((reminderId: string) => {
-    setPending(prev => prev.filter(p => p.reminder_id !== reminderId));
+    setPending((prev) => prev.filter((p) => p.reminder_id !== reminderId));
   }, []);
 
   return {

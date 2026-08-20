@@ -1,25 +1,23 @@
-import React, {createContext, useContext, useEffect, useState, ReactNode} from "react";
-import {User, LoginDto, RegisterDto} from "../types";
-import {authApi} from "../api/auth";
-import {profileApi} from "../api/profile";
-import {tokenStorage} from "../api/client";
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { User, LoginDto, RegisterDto } from '../types';
+import { authApi } from '../api/auth';
+import { profileApi } from '../api/profile';
+import { tokenStorage } from '../api/client';
 
 interface AuthContextValue {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (dto : LoginDto) => Promise<void>;
-  register: (dto : RegisterDto) => Promise<void>;
+  login: (dto: LoginDto) => Promise<void>;
+  register: (dto: RegisterDto) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext < AuthContextValue | undefined > (undefined);
+const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-export function AuthProvider({children} : {
-  children: ReactNode
-}) {
-  const [user, setUser] = useState < User | null > (null);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +28,7 @@ export function AuthProvider({children} : {
           const profile = await profileApi.getProfile();
           setUser(profile);
         }
-      } catch  {
+      } catch {
         await tokenStorage.clear();
       } finally {
         setIsLoading(false);
@@ -38,12 +36,12 @@ export function AuthProvider({children} : {
     })();
   }, []);
 
-  const login = async (dto : LoginDto) => {
+  const login = async (dto: LoginDto) => {
     const res = await authApi.login(dto);
     setUser(res.user);
   };
 
-  const register = async (dto : RegisterDto) => {
+  const register = async (dto: RegisterDto) => {
     await authApi.register(dto);
   };
 
@@ -57,22 +55,25 @@ export function AuthProvider({children} : {
     setUser(profile);
   };
 
-  return (<AuthContext.Provider value={{
-      user,
-      isLoading,
-      isAuthenticated: !!user,
-      login,
-      register,
-      logout,
-      refreshUser
-    }}>
-    {children}
-  </AuthContext.Provider>);
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        isAuthenticated: !!user,
+        login,
+        register,
+        logout,
+        refreshUser,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) 
-    throw new Error("useAuth must be used inside AuthProvider");
+  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
   return ctx;
 }

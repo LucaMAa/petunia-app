@@ -1,8 +1,8 @@
-import React, { createContext, useCallback, useContext, useRef, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, spacing, typography, radius } from "../../styles/theme";
+import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors, spacing, typography, radius } from '../../styles/theme';
 
-type AlertType = "info" | "success" | "error";
+type AlertType = 'info' | 'success' | 'error';
 
 type ShowAlertOptions = {
   duration?: number;
@@ -19,43 +19,46 @@ const AlertContext = createContext<AlertContextValue | null>(null);
 
 export function AlertProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
-  const [message, setMessage] = useState("");
-  const [type, setType] = useState<AlertType>("info");
+  const [message, setMessage] = useState('');
+  const [type, setType] = useState<AlertType>('info');
   const [actionLabel, setActionLabel] = useState<string | null>(null);
   const actionRef = useRef<(() => void) | null>(null);
   const anim = useRef(new Animated.Value(0)).current;
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showAlert = useCallback((msg: string, options?: ShowAlertOptions) => {
-    const duration = Math.min(options?.duration ?? 3000, 3000);
-    setMessage(msg);
-    setType(options?.type ?? "info");
-    setActionLabel(options?.actionLabel ?? null);
-    actionRef.current = options?.onAction ?? null;
-    setVisible(true);
-    anim.setValue(0);
-    Animated.timing(anim, {
-      toValue: 1,
-      duration: 220,
-      useNativeDriver: true,
-    }).start();
-
-    if (hideTimeout.current) {
-      clearTimeout(hideTimeout.current);
-    }
-    hideTimeout.current = setTimeout(() => {
+  const showAlert = useCallback(
+    (msg: string, options?: ShowAlertOptions) => {
+      const duration = Math.min(options?.duration ?? 3000, 3000);
+      setMessage(msg);
+      setType(options?.type ?? 'info');
+      setActionLabel(options?.actionLabel ?? null);
+      actionRef.current = options?.onAction ?? null;
+      setVisible(true);
+      anim.setValue(0);
       Animated.timing(anim, {
-        toValue: 0,
+        toValue: 1,
         duration: 220,
         useNativeDriver: true,
-      }).start(() => {
-        setVisible(false);
-        setMessage("");
-        setActionLabel(null);
-        actionRef.current = null;
-      });
-    }, duration);
-  }, [anim]);
+      }).start();
+
+      if (hideTimeout.current) {
+        clearTimeout(hideTimeout.current);
+      }
+      hideTimeout.current = setTimeout(() => {
+        Animated.timing(anim, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }).start(() => {
+          setVisible(false);
+          setMessage('');
+          setActionLabel(null);
+          actionRef.current = null;
+        });
+      }, duration);
+    },
+    [anim],
+  );
 
   return (
     <AlertContext.Provider value={{ showAlert }}>
@@ -78,7 +81,13 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
             },
           ]}
         >
-          <View style={[styles.banner, type === "error" && styles.error, type === "success" && styles.success]}>
+          <View
+            style={[
+              styles.banner,
+              type === 'error' && styles.error,
+              type === 'success' && styles.success,
+            ]}
+          >
             <Text style={styles.text}>{message}</Text>
             {actionLabel ? (
               <Pressable
@@ -87,12 +96,14 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
                     actionRef.current?.();
                   } catch {}
                   if (hideTimeout.current) clearTimeout(hideTimeout.current);
-                  Animated.timing(anim, { toValue: 0, duration: 160, useNativeDriver: true }).start(() => {
-                    setVisible(false);
-                    setMessage("");
-                    setActionLabel(null);
-                    actionRef.current = null;
-                  });
+                  Animated.timing(anim, { toValue: 0, duration: 160, useNativeDriver: true }).start(
+                    () => {
+                      setVisible(false);
+                      setMessage('');
+                      setActionLabel(null);
+                      actionRef.current = null;
+                    },
+                  );
                 }}
                 style={styles.action}
                 accessibilityRole="button"
@@ -100,15 +111,21 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
                 <Text style={styles.actionText}>{actionLabel}</Text>
               </Pressable>
             ) : null}
-            <Pressable onPress={() => {
-              if (hideTimeout.current) clearTimeout(hideTimeout.current);
-              Animated.timing(anim, { toValue: 0, duration: 160, useNativeDriver: true }).start(() => {
-                setVisible(false);
-                setMessage("");
-                setActionLabel(null);
-                actionRef.current = null;
-              });
-            }} style={styles.close} accessibilityRole="button">
+            <Pressable
+              onPress={() => {
+                if (hideTimeout.current) clearTimeout(hideTimeout.current);
+                Animated.timing(anim, { toValue: 0, duration: 160, useNativeDriver: true }).start(
+                  () => {
+                    setVisible(false);
+                    setMessage('');
+                    setActionLabel(null);
+                    actionRef.current = null;
+                  },
+                );
+              }}
+              style={styles.close}
+              accessibilityRole="button"
+            >
               <Text style={styles.closeText}>×</Text>
             </Pressable>
           </View>
@@ -120,13 +137,13 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
 
 export function useAlert() {
   const ctx = useContext(AlertContext);
-  if (!ctx) throw new Error("useAlert must be used within AlertProvider");
+  if (!ctx) throw new Error('useAlert must be used within AlertProvider');
   return ctx;
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     top: 0,
@@ -141,9 +158,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   text: { ...typography.bodyMedium, flex: 1, color: colors.text },
   close: { marginLeft: spacing.md, paddingHorizontal: spacing.sm },

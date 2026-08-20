@@ -13,14 +13,14 @@ export function useInvites() {
   }, []);
 
   const addInvite = useCallback((invite: FamilyInvite) => {
-    setInvites(prev => {
-      if (prev.some(i => i.id === invite.id)) return prev;
+    setInvites((prev) => {
+      if (prev.some((i) => i.id === invite.id)) return prev;
       return [invite, ...prev];
     });
   }, []);
 
   const removeInvite = useCallback((id: number) => {
-    setInvites(prev => prev.filter(i => i.id !== id));
+    setInvites((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
   return { invites, load, addInvite, removeInvite };

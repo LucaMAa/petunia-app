@@ -1,12 +1,11 @@
-import { useEffect, useRef, useCallback } from "react";
-import * as Location from "expo-location";
-import { MapReport } from "../types";
-
+import { useEffect, useRef, useCallback } from 'react';
+import * as Location from 'expo-location';
+import { MapReport } from '../types';
 
 export function useGeofencing(
   reports: MapReport[],
   onAlert: (report: MapReport) => void,
-  wsRef: React.MutableRefObject<WebSocket | null>
+  wsRef: React.MutableRefObject<WebSocket | null>,
 ) {
   const alertedIds = useRef<Set<string>>(new Set());
   const ALERT_RADIUS_M = 200;
@@ -14,7 +13,7 @@ export function useGeofencing(
   const checkProximity = useCallback(
     (lat: number, lng: number) => {
       for (const r of reports) {
-        if (r.type !== "poisoned_bait" && r.type !== "danger") continue;
+        if (r.type !== 'poisoned_bait' && r.type !== 'danger') continue;
         if (alertedIds.current.has(r.id)) continue;
         const dist = haversine(lat, lng, r.lat, r.lng);
         if (dist <= ALERT_RADIUS_M) {
@@ -23,7 +22,7 @@ export function useGeofencing(
         }
       }
     },
-    [reports, onAlert]
+    [reports, onAlert],
   );
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export function useGeofencing(
 
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
+      if (status !== 'granted') return;
 
       sub = await Location.watchPositionAsync(
         {
@@ -44,15 +43,15 @@ export function useGeofencing(
           checkProximity(lat, lng);
 
           if (wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(
-              JSON.stringify({ event: "location_update", payload: { lat, lng } })
-            );
+            wsRef.current.send(JSON.stringify({ event: 'location_update', payload: { lat, lng } }));
           }
-        }
+        },
       );
     })();
 
-    return () => { sub?.remove(); };
+    return () => {
+      sub?.remove();
+    };
   }, [checkProximity, wsRef]);
 }
 
@@ -62,8 +61,6 @@ function haversine(lat1: number, lng1: number, lat2: number, lng2: number) {
   const φ2 = (lat2 * Math.PI) / 180;
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;
   const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-  const a =
-    Math.sin(Δφ / 2) ** 2 +
-    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+  const a = Math.sin(Δφ / 2) ** 2 + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }

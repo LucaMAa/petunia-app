@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, Switch, RefreshControl, Alert,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Switch,
+  RefreshControl,
+  Alert,
 } from 'react-native';
 import { useAlert } from '../../components/ui/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,13 +33,13 @@ interface Props {
 
 const TYPE_META: Record<string, { emoji: string; label: string; bg: string; color: string }> = {
   medicine: { emoji: '💊', label: 'Medicina', bg: '#EAF2F8', color: '#2B5F7A' },
-  food:     { emoji: '🍽', label: 'Cibo',     bg: '#EAF5EE', color: '#2E5E3A' },
-  other:    { emoji: '🔔', label: 'Altro',    bg: '#F5EAE2', color: '#7A3D22' },
+  food: { emoji: '🍽', label: 'Cibo', bg: '#EAF5EE', color: '#2E5E3A' },
+  other: { emoji: '🔔', label: 'Altro', bg: '#F5EAE2', color: '#7A3D22' },
 };
 
 const REPEAT_LABEL: Record<string, string> = {
-  none:   'Una volta',
-  daily:  'Ogni giorno',
+  none: 'Una volta',
+  daily: 'Ogni giorno',
   weekly: 'Ogni settimana',
   custom: 'Personalizzato',
 };
@@ -57,7 +64,9 @@ export function ReminderListScreen({
   const { reminders, isLoading, error, load, update, remove } = useReminders(familyId, petId);
   const { showAlert } = useAlert();
 
-  useEffect(() => { load(); }, [familyId]);
+  useEffect(() => {
+    load();
+  }, [familyId]);
 
   async function handleToggle(reminder: Reminder, value: boolean) {
     try {
@@ -72,18 +81,18 @@ export function ReminderListScreen({
         enabled: value,
       });
     } catch (e) {
-      showAlert(e instanceof Error ? e.message : t('retry','Riprova'), { type: 'error' });
+      showAlert(e instanceof Error ? e.message : t('retry', 'Riprova'), { type: 'error' });
     }
   }
 
   function confirmDelete(reminder: Reminder) {
     Alert.alert(
-      t('confirm_delete_title','Eliminare "%s"?',).replace('%s', reminder.title),
-      t('confirm_delete_msg','Azione irreversibile.'),
+      t('confirm_delete_title', 'Eliminare "%s"?').replace('%s', reminder.title),
+      t('confirm_delete_msg', 'Azione irreversibile.'),
       [
-        { text: t('cancel','Annulla'), style: 'cancel' },
-        { text: t('delete','Elimina'), style: 'destructive', onPress: () => remove(reminder.id) },
-      ]
+        { text: t('cancel', 'Annulla'), style: 'cancel' },
+        { text: t('delete', 'Elimina'), style: 'destructive', onPress: () => remove(reminder.id) },
+      ],
     );
   }
 
@@ -99,7 +108,6 @@ export function ReminderListScreen({
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
-      {/* NAV */}
       <View style={styles.nav}>
         <TouchableOpacity onPress={onBack} style={styles.navBtn}>
           <Text style={styles.navBack}>{'‹'}</Text>
@@ -107,24 +115,20 @@ export function ReminderListScreen({
         </TouchableOpacity>
         <View style={styles.navActions}>
           <TouchableOpacity onPress={onOpenAckHistory} style={styles.historyBtn}>
-            <Text style={styles.historyBtnText}>{`📋 ${t('history','Storico')}`}</Text>
+            <Text style={styles.historyBtnText}>{`📋 ${t('history', 'Storico')}`}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onCreateReminder} style={styles.addBtn}>
-            <Text style={styles.addBtnText}>{`＋ ${t('new','Nuovo')}`}</Text>
+            <Text style={styles.addBtnText}>{`＋ ${t('new', 'Nuovo')}`}</Text>
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.overline}>{t('reminders','Promemoria')}</Text>
-        <Text style={styles.title}>
-          {petName ? petName : familyName}
-        </Text>
+        <Text style={styles.overline}>{t('reminders', 'Promemoria')}</Text>
+        <Text style={styles.title}>{petName ? petName : familyName}</Text>
         {petName ? (
           <Text style={styles.subtitle}>{`Famiglia: ${familyName}`}</Text>
         ) : (
-          <Text style={styles.subtitle}>{t('all_reminders','Tutti i promemoria')}</Text>
+          <Text style={styles.subtitle}>{t('all_reminders', 'Tutti i promemoria')}</Text>
         )}
       </View>
 
@@ -136,11 +140,7 @@ export function ReminderListScreen({
           reminders.length === 0 && styles.listEmpty,
         ]}
         refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={load}
-            tintColor={colors.primary}
-          />
+          <RefreshControl refreshing={isLoading} onRefresh={load} tintColor={colors.primary} />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -151,18 +151,18 @@ export function ReminderListScreen({
             <View style={styles.emptyIconBox}>
               <Text style={styles.emptyIcon}>{'🔔'}</Text>
             </View>
-            <Text style={styles.emptyTitle}>{t('no_reminders','Nessun promemoria')}</Text>
+            <Text style={styles.emptyTitle}>{t('no_reminders', 'Nessun promemoria')}</Text>
             <Text style={styles.emptyText}>
-              {t('no_reminders','Crea il primo promemoria per medicine, pasti o altro!')}
+              {t('no_reminders', 'Crea il primo promemoria per medicine, pasti o altro!')}
             </Text>
             <Button
-              label={t('create_reminder','＋ Crea promemoria')}
+              label={t('create_reminder', '＋ Crea promemoria')}
               onPress={onCreateReminder}
               style={{ marginTop: spacing.sm }}
             />
           </View>
         ) : (
-          reminders.map(reminder => (
+          reminders.map((reminder) => (
             <ReminderCard
               key={reminder.id}
               reminder={reminder}
@@ -218,7 +218,6 @@ function ReminderCard({
       <View style={[styles.accentBar, { backgroundColor: meta.color }]} />
 
       <View style={styles.cardBody}>
-        {/* Top row */}
         <View style={styles.cardTop}>
           <View style={[styles.typeBadge, { backgroundColor: meta.bg }]}>
             <Text style={styles.typeEmoji}>{meta.emoji}</Text>
@@ -226,39 +225,29 @@ function ReminderCard({
           </View>
           <Switch
             value={reminder.enabled}
-            onValueChange={v => onToggle(reminder, v)}
+            onValueChange={(v) => onToggle(reminder, v)}
             trackColor={{ false: colors.border, true: colors.primaryMid }}
             thumbColor={reminder.enabled ? colors.primary : colors.textMuted}
           />
         </View>
-
-        {/* Title */}
         <Text style={[styles.cardTitle, !reminder.enabled && styles.cardTitleDisabled]}>
           {reminder.title}
         </Text>
-
-        {/* Notes */}
         {!!reminder.notes && (
-          <Text style={styles.cardNotes} numberOfLines={2}>{reminder.notes}</Text>
+          <Text style={styles.cardNotes} numberOfLines={2}>
+            {reminder.notes}
+          </Text>
         )}
-
-        {/* Schedule */}
         <View style={styles.metaRow}>
           <Text style={styles.metaIcon}>{'🕐'}</Text>
           <Text style={styles.metaText}>{scheduleText}</Text>
         </View>
-
-        {/* Pet */}
         {reminder.pet && (
           <View style={styles.metaRow}>
             <Text style={styles.metaIcon}>{'🐾'}</Text>
-            <Text style={styles.metaText}>
-              {`${reminder.pet.name} · ${reminder.pet.species}`}
-            </Text>
+            <Text style={styles.metaText}>{`${reminder.pet.name} · ${reminder.pet.species}`}</Text>
           </View>
         )}
-
-        {/* Last acked by */}
         {reminder._lastAckedBy && (
           <View style={styles.ackedRow}>
             <Avatar name={reminder._lastAckedBy} size={18} />
@@ -268,8 +257,6 @@ function ReminderCard({
             </Text>
           </View>
         )}
-
-        {/* Actions */}
         <View style={styles.cardActions}>
           <TouchableOpacity onPress={onEdit} style={styles.editBtn}>
             <Text style={styles.editBtnText}>{'✏ Modifica'}</Text>
@@ -284,7 +271,7 @@ function ReminderCard({
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   nav: {
@@ -295,9 +282,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
   },
-  navBtn:     { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  navBack:    { fontSize: 22, color: colors.primary },
-  navLabel:   { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
+  navBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  navBack: { fontSize: 22, color: colors.primary },
+  navLabel: { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
   navActions: { flexDirection: 'row', gap: spacing.xs, alignItems: 'center' },
 
   historyBtn: {
@@ -324,7 +311,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   overline: { ...typography.overline },
-  title:    { ...typography.h1 },
+  title: { ...typography.h1 },
   subtitle: {
     ...typography.bodySmall,
     color: colors.textSecondary,
@@ -332,7 +319,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
 
-  list:      { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
   listEmpty: { flexGrow: 1 },
 
   card: {
@@ -345,8 +332,8 @@ const styles = StyleSheet.create({
     ...shadow.sm,
   },
   cardDisabled: { opacity: 0.55 },
-  accentBar:    { width: 4 },
-  cardBody:     { flex: 1, padding: spacing.md, gap: spacing.xs },
+  accentBar: { width: 4 },
+  cardBody: { flex: 1, padding: spacing.md, gap: spacing.xs },
 
   cardTop: {
     flexDirection: 'row',
@@ -364,13 +351,13 @@ const styles = StyleSheet.create({
   typeEmoji: { fontSize: 13 },
   typeLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
 
-  cardTitle:         { ...typography.h4 },
+  cardTitle: { ...typography.h4 },
   cardTitleDisabled: { color: colors.textMuted },
-  cardNotes:         { ...typography.bodySmall, color: colors.textSecondary },
+  cardNotes: { ...typography.bodySmall, color: colors.textSecondary },
 
-  metaRow:    { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  metaIcon:   { fontSize: 12 },
-  metaText:   { ...typography.caption, color: colors.textSecondary, fontWeight: '500' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  metaIcon: { fontSize: 12 },
+  metaText: { ...typography.caption, color: colors.textSecondary, fontWeight: '500' },
 
   ackedRow: {
     flexDirection: 'row',
@@ -401,8 +388,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryLight,
     borderRadius: radius.sm,
   },
-  editBtnText:   { ...typography.caption, color: colors.primaryDeep, fontWeight: '700' },
-  deleteBtn:     { padding: 4 },
+  editBtnText: { ...typography.caption, color: colors.primaryDeep, fontWeight: '700' },
+  deleteBtn: { padding: 4 },
   deleteBtnText: { fontSize: 16 },
 
   empty: {
@@ -414,13 +401,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   emptyIconBox: {
-    width: 100, height: 100,
+    width: 100,
+    height: 100,
     borderRadius: radius.xxl,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: colors.primaryMid,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.primaryMid,
   },
-  emptyIcon:  { fontSize: 48 },
+  emptyIcon: { fontSize: 48 },
   emptyTitle: { ...typography.h2, textAlign: 'center' },
-  emptyText:  { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
 });

@@ -1,7 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, RefreshControl,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '../../components/ui/Avatar';
@@ -15,7 +20,7 @@ interface AckRecord {
   reminder_id: string;
   occurrence_key: string;
   acked_at: string;
-  user?: { id: string; first_name: string; last_name: string };
+  user?: { id: string; first_name: string; last_name: string; avatar_file_id?: string };
   reminder?: {
     id: string;
     title: string;
@@ -28,8 +33,8 @@ interface AckRecord {
 
 const TYPE_META: Record<string, { emoji: string; label: string; bg: string; color: string }> = {
   medicine: { emoji: '💊', label: 'Medicina', bg: '#EAF2F8', color: '#2B5F7A' },
-  food:     { emoji: '🍽',  label: 'Cibo',     bg: '#EAF5EE', color: '#2E5E3A' },
-  other:    { emoji: '🔔', label: 'Altro',    bg: '#F5EAE2', color: '#7A3D22' },
+  food: { emoji: '🍽', label: 'Cibo', bg: '#EAF5EE', color: '#2E5E3A' },
+  other: { emoji: '🔔', label: 'Altro', bg: '#F5EAE2', color: '#7A3D22' },
 };
 
 async function fetchAckHistory(familyId: string): Promise<AckRecord[]> {
@@ -60,7 +65,9 @@ export function AckHistoryScreen({ familyId, familyName, onBack }: Props) {
     }
   }, [familyId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const { t, formatDate, formatTime } = useLocalization();
 
@@ -89,15 +96,12 @@ export function AckHistoryScreen({ familyId, familyName, onBack }: Props) {
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
-      {/* NAV */}
       <View style={styles.nav}>
         <TouchableOpacity onPress={onBack} style={styles.navBtn}>
           <Text style={styles.navBack}>{'‹'}</Text>
           <Text style={styles.navLabel}>{t('back', 'Indietro')}</Text>
         </TouchableOpacity>
       </View>
-
-      {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.overline}>{t('history', 'Storico')}</Text>
         <Text style={styles.title}>{t('completed_alerts', 'Alert completati')}</Text>
@@ -122,8 +126,6 @@ export function AckHistoryScreen({ familyId, familyName, onBack }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <ErrorBanner message={error} />
-
-          {/* STAT CARDS */}
           {acks.length > 0 && (
             <View style={styles.statsRow}>
               <View style={styles.statCard}>
@@ -133,8 +135,8 @@ export function AckHistoryScreen({ familyId, familyName, onBack }: Props) {
               {topUser && (
                 <View style={styles.statCard}>
                   <Text style={styles.statNum}>{topUser.count}</Text>
-                    <Text style={styles.statLabel} numberOfLines={1}>
-                    {t('done_by', 'Fatto da')}{' '}{topUser.name.split(' ')[0]}
+                  <Text style={styles.statLabel} numberOfLines={1}>
+                    {t('done_by', 'Fatto da')} {topUser.name.split(' ')[0]}
                   </Text>
                 </View>
               )}
@@ -150,22 +152,26 @@ export function AckHistoryScreen({ familyId, familyName, onBack }: Props) {
               <View style={styles.emptyIconBox}>
                 <Text style={styles.emptyIcon}>{'✅'}</Text>
               </View>
-              <Text style={styles.emptyTitle}>{t('no_completed_alerts', 'Nessun alert completato')}</Text>
+              <Text style={styles.emptyTitle}>
+                {t('no_completed_alerts', 'Nessun alert completato')}
+              </Text>
               <Text style={styles.emptyText}>
-                {t('no_completed_alerts', 'Quando un membro segna un promemoria come fatto, apparirà qui.')}
+                {t(
+                  'no_completed_alerts',
+                  'Quando un membro segna un promemoria come fatto, apparirà qui.',
+                )}
               </Text>
             </View>
           ) : (
-            groups.map(group => (
+            groups.map((group) => (
               <View key={group.label}>
-                {/* Day separator */}
                 <View style={styles.daySep}>
                   <View style={styles.daySepLine} />
                   <Text style={styles.daySepLabel}>{group.label}</Text>
                   <View style={styles.daySepLine} />
                 </View>
 
-                {group.items.map(ack => (
+                {group.items.map((ack) => (
                   <AckCard key={ack.id} ack={ack} />
                 ))}
               </View>
@@ -183,22 +189,18 @@ function AckCard({ ack }: { ack: AckRecord }) {
   const meta = TYPE_META[type] ?? TYPE_META.other;
   const { formatTime, formatDate } = useLocalization();
   const time = formatTime(ack.acked_at, { hour: '2-digit', minute: '2-digit' });
-  const userName = ack.user
-    ? `${ack.user.first_name} ${ack.user.last_name}`
-    : 'Utente sconosciuto';
+  const userName = ack.user ? `${ack.user.first_name} ${ack.user.last_name}` : 'Utente sconosciuto';
   let occLabel = ack.occurrence_key;
   try {
     const d = new Date(ack.occurrence_key + ':00Z');
     occLabel = `${formatDate(d, { day: 'numeric', month: 'short' })} ${formatTime(d, { hour: '2-digit', minute: '2-digit' })}`;
-  } catch {
-  }
+  } catch {}
 
   return (
     <View style={styles.card}>
       <View style={[styles.cardAccent, { backgroundColor: meta.color }]} />
 
       <View style={styles.cardBody}>
-        {/* Top row: type badge + time */}
         <View style={styles.cardTop}>
           <View style={[styles.typeBadge, { backgroundColor: meta.bg }]}>
             <Text style={styles.typeEmoji}>{meta.emoji}</Text>
@@ -206,27 +208,21 @@ function AckCard({ ack }: { ack: AckRecord }) {
           </View>
           <Text style={styles.timeText}>{time}</Text>
         </View>
-
-        {/* Title */}
         <Text style={styles.cardTitle}>{rem?.title ?? '—'}</Text>
-
-        {/* Notes */}
         {!!rem?.notes && (
-          <Text style={styles.cardNotes} numberOfLines={2}>{rem.notes}</Text>
+          <Text style={styles.cardNotes} numberOfLines={2}>
+            {rem.notes}
+          </Text>
         )}
 
-        {/* Meta row */}
         <View style={styles.metaGrid}>
-          {/* Who */}
           <View style={styles.metaItem}>
-            <Avatar name={userName} size={20} />
+            <Avatar name={userName} uri={ack.user?.avatar_file_id} size={20} />
             <View>
               <Text style={styles.metaCaption}>{'Fatto da'}</Text>
               <Text style={styles.metaValue}>{userName}</Text>
             </View>
           </View>
-
-          {/* Occurrence (scheduled for) */}
           <View style={styles.metaItem}>
             <Text style={styles.metaIcon}>{'🕐'}</Text>
             <View>
@@ -234,8 +230,6 @@ function AckCard({ ack }: { ack: AckRecord }) {
               <Text style={styles.metaValue}>{occLabel}</Text>
             </View>
           </View>
-
-          {/* Pet */}
           {rem?.pet && (
             <View style={styles.metaItem}>
               <Text style={styles.metaIcon}>{'🐾'}</Text>
@@ -246,8 +240,6 @@ function AckCard({ ack }: { ack: AckRecord }) {
             </View>
           )}
         </View>
-
-        {/* Done badge */}
         <View style={styles.doneBadge}>
           <Text style={styles.doneBadgeText}>{'✓ Completato'}</Text>
         </View>
@@ -257,7 +249,7 @@ function AckCard({ ack }: { ack: AckRecord }) {
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: colors.background },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   nav: {
@@ -265,8 +257,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
   },
-  navBtn:   { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' },
-  navBack:  { fontSize: 22, color: colors.primary },
+  navBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' },
+  navBack: { fontSize: 22, color: colors.primary },
   navLabel: { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
 
   header: {
@@ -274,10 +266,10 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   overline: { ...typography.overline },
-  title:    { ...typography.h1 },
+  title: { ...typography.h1 },
   subtitle: { ...typography.bodySmall, color: colors.textSecondary, marginTop: 2 },
 
-  list:      { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
   listEmpty: { flexGrow: 1 },
 
   statsRow: {
@@ -295,7 +287,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
   },
-  statNum:   { ...typography.h2, color: colors.primary },
+  statNum: { ...typography.h2, color: colors.primary },
   statLabel: { ...typography.caption, color: colors.textMuted, textAlign: 'center' },
   daySep: {
     flexDirection: 'row',
@@ -303,7 +295,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginVertical: spacing.sm,
   },
-  daySepLine:  { flex: 1, height: 1, backgroundColor: colors.border },
+  daySepLine: { flex: 1, height: 1, backgroundColor: colors.border },
   daySepLabel: { ...typography.caption, color: colors.textMuted, fontWeight: '700' },
   card: {
     flexDirection: 'row',
@@ -316,7 +308,7 @@ const styles = StyleSheet.create({
     ...shadow.sm,
   },
   cardAccent: { width: 4 },
-  cardBody:   { flex: 1, padding: spacing.md, gap: spacing.xs },
+  cardBody: { flex: 1, padding: spacing.md, gap: spacing.xs },
 
   cardTop: {
     flexDirection: 'row',
@@ -333,7 +325,7 @@ const styles = StyleSheet.create({
   },
   typeEmoji: { fontSize: 13 },
   typeLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
-  timeText:  { ...typography.caption, color: colors.textMuted, fontWeight: '600' },
+  timeText: { ...typography.caption, color: colors.textMuted, fontWeight: '600' },
 
   cardTitle: { ...typography.h4 },
   cardNotes: { ...typography.bodySmall, color: colors.textSecondary },
@@ -349,9 +341,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  metaIcon:    { fontSize: 16 },
+  metaIcon: { fontSize: 16 },
   metaCaption: { ...typography.caption, color: colors.textMuted },
-  metaValue:   { ...typography.bodySmall, fontWeight: '600' },
+  metaValue: { ...typography.bodySmall, fontWeight: '600' },
   doneBadge: {
     alignSelf: 'flex-start',
     backgroundColor: colors.successLight,
@@ -370,13 +362,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   emptyIconBox: {
-    width: 100, height: 100,
+    width: 100,
+    height: 100,
     borderRadius: radius.xxl,
     backgroundColor: colors.primaryLight,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: colors.primaryMid,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.primaryMid,
   },
-  emptyIcon:  { fontSize: 48 },
+  emptyIcon: { fontSize: 48 },
   emptyTitle: { ...typography.h2, textAlign: 'center' },
-  emptyText:  { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
 });

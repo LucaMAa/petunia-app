@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useAlert } from '../../components/ui/AlertContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../../context/AuthContext';
@@ -54,21 +47,13 @@ export function ProfileScreen() {
         },
       ]}
     >
-      {/* Hero card */}
       <Card style={styles.heroCard}>
-        <AvatarPicker
-          currentUrl={avatarUrl}
-          name={fullName}
-          size={72}
-          onPick={handleAvatarPick}
-        />
+        <AvatarPicker currentUrl={avatarUrl} name={fullName} size={72} onPick={handleAvatarPick} />
         <View style={styles.heroInfo}>
           <Text style={styles.heroName}>{fullName}</Text>
           <Text style={styles.heroEmail}>{user.email}</Text>
         </View>
       </Card>
-
-      {/* Sections */}
       {section === 'view' && (
         <ProfileActions
           onEditProfile={goTo('editProfile')}
@@ -83,26 +68,29 @@ export function ProfileScreen() {
         <EditProfileSection
           initialFirstName={user.first_name}
           initialLastName={user.last_name}
-          onSuccess={async () => { await refreshUser(); setSection('view'); }}
+          onSuccess={async () => {
+            await refreshUser();
+            setSection('view');
+          }}
           onCancel={goTo('view')}
         />
       )}
 
-          {section === 'changePassword' && (
-            <ChangePasswordSection
-              onSuccess={() => setSection('view')}
-              onCancel={goTo('view')}
-              showAlert={showAlert}
-            />
-          )}
+      {section === 'changePassword' && (
+        <ChangePasswordSection
+          onSuccess={() => setSection('view')}
+          onCancel={goTo('view')}
+          showAlert={showAlert}
+        />
+      )}
 
-          {section === 'changeEmail' && (
-            <RequestEmailChangeSection
-              onSuccess={() => setSection('view')}
-              onCancel={goTo('view')}
-              showAlert={showAlert}
-            />
-          )}
+      {section === 'changeEmail' && (
+        <RequestEmailChangeSection
+          onSuccess={() => setSection('view')}
+          onCancel={goTo('view')}
+          showAlert={showAlert}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -132,10 +120,14 @@ function ProfileActions({
 
   return (
     <View style={styles.actions}>
-      <MenuItem icon="✏️" label={t('edit_profile','Edit profile')} onPress={onEditProfile} />
-      <MenuItem icon="🔑" label={t('change_password','Change password')} onPress={onChangePassword} />
-      <MenuItem icon="✉️" label={t('change_email','Change email')} onPress={onChangeEmail} />
-      <MenuItem icon="🚪" label={t('sign_out','Sign out')} onPress={confirmLogout} destructive />
+      <MenuItem icon="✏️" label={t('edit_profile', 'Edit profile')} onPress={onEditProfile} />
+      <MenuItem
+        icon="🔑"
+        label={t('change_password', 'Change password')}
+        onPress={onChangePassword}
+      />
+      <MenuItem icon="✉️" label={t('change_email', 'Change email')} onPress={onChangeEmail} />
+      <MenuItem icon="🚪" label={t('sign_out', 'Sign out')} onPress={confirmLogout} destructive />
     </View>
   );
 }
@@ -178,7 +170,7 @@ function EditProfileSection({
 
   async function handleSave() {
     if (!firstName.trim() || !lastName.trim()) {
-      setError(t('both_fields_required','Both fields are required'));
+      setError(t('both_fields_required', 'Both fields are required'));
       return;
     }
     setIsLoading(true);
@@ -187,7 +179,7 @@ function EditProfileSection({
       await profileApi.updateProfile({ first_name: firstName.trim(), last_name: lastName.trim() });
       onSuccess();
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('update_failed','Update failed'));
+      setError(e instanceof Error ? e.message : t('update_failed', 'Update failed'));
     } finally {
       setIsLoading(false);
     }
@@ -195,12 +187,12 @@ function EditProfileSection({
 
   return (
     <Card style={styles.sectionCard}>
-      <Text style={styles.sectionTitle}>{t('edit_profile','Edit Profile')}</Text>
+      <Text style={styles.sectionTitle}>{t('edit_profile')}</Text>
       <ErrorBanner message={error} />
-      <TextInput label={t('first_name_label','First name')} value={firstName} onChangeText={setFirstName} />
-      <TextInput label={t('last_name_label','Last name')} value={lastName} onChangeText={setLastName} />
-      <Button label={t('save_changes','Save changes')} onPress={handleSave} loading={isLoading} />
-      <Button label={t('cancel','Cancel')} onPress={onCancel} variant="ghost" />
+      <TextInput label={t('first_name_label')} value={firstName} onChangeText={setFirstName} />
+      <TextInput label={t('last_name_label')} value={lastName} onChangeText={setLastName} />
+      <Button label={t('save_changes')} onPress={handleSave} loading={isLoading} />
+      <Button label={t('cancel')} onPress={onCancel} variant="ghost" />
     </Card>
   );
 }
@@ -222,17 +214,28 @@ function ChangePasswordSection({
   const { t } = useLocalization();
 
   async function handleSave() {
-    if (!current || !next || !confirm) { setError(t('all_fields_required','All fields are required')); return; }
-    if (next.length < 8) { setError(t('password_min_length','New password must be at least 8 characters')); return; }
-    if (next !== confirm) { setError(t('passwords_must_match','Passwords do not match')); return; }
+    if (!current || !next || !confirm) {
+      setError(t('all_fields_required', 'All fields are required'));
+      return;
+    }
+    if (next.length < 8) {
+      setError(t('password_min_length', 'New password must be at least 8 characters'));
+      return;
+    }
+    if (next !== confirm) {
+      setError(t('passwords_must_match', 'Passwords do not match'));
+      return;
+    }
     setIsLoading(true);
     setError(null);
-      try {
+    try {
       await profileApi.changePassword({ current_password: current, new_password: next });
-      showAlert(t('password_updated','Password updated successfully.'), { type: 'success' });
+      showAlert(t('password_updated', 'Password updated successfully.'), { type: 'success' });
       onSuccess();
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('password_update_failed','Failed to update password'));
+      setError(
+        e instanceof Error ? e.message : t('password_update_failed', 'Failed to update password'),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -240,13 +243,33 @@ function ChangePasswordSection({
 
   return (
     <Card style={styles.sectionCard}>
-      <Text style={styles.sectionTitle}>{t('change_password','Change Password')}</Text>
+      <Text style={styles.sectionTitle}>{t('change_password')}</Text>
       <ErrorBanner message={error} />
-      <TextInput label="Current password" value={current} onChangeText={setCurrent} isPassword />
-      <TextInput label="New password" value={next} onChangeText={setNext} isPassword hint="Min. 8 characters" />
-      <TextInput label="Confirm new password" value={confirm} onChangeText={setConfirm} isPassword />
-      <Button label={t('update_password','Update password')} onPress={handleSave} loading={isLoading} />
-      <Button label={t('cancel','Cancel')} onPress={onCancel} variant="ghost" />
+      <TextInput
+        label={t('current_password')}
+        value={current}
+        onChangeText={setCurrent}
+        isPassword
+      />
+      <TextInput
+        label={t('new_password')}
+        value={next}
+        onChangeText={setNext}
+        isPassword
+        hint={t('password_placeholder')}
+      />
+      <TextInput
+        label={t('confirm_new_password')}
+        value={confirm}
+        onChangeText={setConfirm}
+        isPassword
+      />
+      <Button
+        label={t('update_password', 'Update password')}
+        onPress={handleSave}
+        loading={isLoading}
+      />
+      <Button label={t('cancel')} onPress={onCancel} variant="ghost" />
     </Card>
   );
 }
@@ -266,12 +289,17 @@ function RequestEmailChangeSection({
   const { t } = useLocalization();
 
   async function handleRequest() {
-    if (!/\S+@\S+\.\S+/.test(newEmail)) { setError(t('enter_valid_email','Enter a valid email address')); return; }
+    if (!/\S+@\S+\.\S+/.test(newEmail)) {
+      setError(t('enter_valid_email', 'Enter a valid email address'));
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
       await profileApi.requestEmailChange({ new_email: newEmail.trim().toLowerCase() });
-      showAlert(t('check_inbox_msg', `We've sent a confirmation link to ${newEmail}.`), { type: 'success' });
+      showAlert(t('check_inbox_msg', `We've sent a confirmation link to ${newEmail}.`), {
+        type: 'success',
+      });
       onSuccess();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to request email change');
@@ -282,18 +310,18 @@ function RequestEmailChangeSection({
 
   return (
     <Card style={styles.sectionCard}>
-      <Text style={styles.sectionTitle}>{t('change_email','Change Email')}</Text>
+      <Text style={styles.sectionTitle}>{t('change_email')}</Text>
       <ErrorBanner message={error} />
       <TextInput
-        label="New email address"
+        label={t('new_email')}
         placeholder="new@example.com"
         value={newEmail}
         onChangeText={setNewEmail}
         keyboardType="email-address"
         autoCapitalize="none"
       />
-      <Button label={t('send_confirmation','Send confirmation')} onPress={handleRequest} loading={isLoading} />
-      <Button label={t('cancel','Cancel')} onPress={onCancel} variant="ghost" />
+      <Button label={t('send_confirmation')} onPress={handleRequest} loading={isLoading} />
+      <Button label={t('cancel', 'Cancel')} onPress={onCancel} variant="ghost" />
     </Card>
   );
 }
@@ -306,7 +334,12 @@ const styles = StyleSheet.create({
   heroInfo: { flex: 1, gap: spacing.xs },
   heroName: { ...typography.h3 },
   heroEmail: { ...typography.bodySmall },
-  badge: { alignSelf: 'flex-start', paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 99 },
+  badge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: 99,
+  },
   badgeText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
 
   actions: { gap: spacing.sm },

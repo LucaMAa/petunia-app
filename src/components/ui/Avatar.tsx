@@ -5,7 +5,7 @@ import { useAuthenticatedImageSource } from '../../hooks/useAuthenticatedUrls';
 
 interface AvatarProps {
   name?: string;
-  uri?:  string;
+  uri?: string;
   size?: number;
   style?: ViewStyle | ImageStyle;
   shape?: 'circle' | 'rounded';
@@ -15,7 +15,7 @@ function getInitials(name: string): string {
   return name
     .split(' ')
     .slice(0, 2)
-    .map(w => w[0]?.toUpperCase() ?? '')
+    .map((w) => w[0]?.toUpperCase() ?? '')
     .join('');
 }
 
@@ -38,7 +38,7 @@ function nameToColors(name: string) {
 
 export function Avatar({ name = '', uri, size = 44, style, shape = 'circle' }: AvatarProps) {
   const fontSize = size * 0.37;
-  const borderR  = shape === 'circle' ? size / 2 : radius.sm;
+  const borderR = shape === 'circle' ? size / 2 : radius.sm;
   const { bg, text } = nameToColors(name);
 
   const source = useAuthenticatedImageSource(uri);
@@ -47,10 +47,7 @@ export function Avatar({ name = '', uri, size = 44, style, shape = 'circle' }: A
     return (
       <Image
         source={source}
-        style={[
-          { width: size, height: size, borderRadius: borderR },
-          style as ImageStyle,
-        ]}
+        style={[{ width: size, height: size, borderRadius: borderR }, style as ImageStyle]}
       />
     );
   }
@@ -63,14 +60,12 @@ export function Avatar({ name = '', uri, size = 44, style, shape = 'circle' }: A
         style,
       ]}
     >
-      <Text style={[styles.initials, { fontSize, color: text }]}>
-        {getInitials(name)}
-      </Text>
+      <Text style={[styles.initials, { fontSize, color: text }]}>{getInitials(name)}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { alignItems: 'center', justifyContent: 'center' },
-  initials:  { fontWeight: '700' },
+  initials: { fontWeight: '700' },
 });

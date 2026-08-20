@@ -14,6 +14,7 @@ import { Button } from '../../components/ui/Button';
 import { TextInput } from '../../components/ui/TextInput';
 import { ErrorBanner } from '../../components/ui/ErrorBanner';
 import { colors, spacing, typography } from '../../styles/theme';
+import { useLocalization } from '../../context/LocalizationContext';
 
 interface Props {
   onBack: () => void;
@@ -26,10 +27,11 @@ export function ForgotPasswordScreen({ onBack }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const { t } = useLocalization();
 
   async function handleSubmit() {
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
-      setEmailError('Please enter a valid email');
+      setEmailError(t('auth.invalid_email'));
       return;
     }
     setEmailError('');
@@ -39,7 +41,7 @@ export function ForgotPasswordScreen({ onBack }: Props) {
       await authApi.requestPasswordReset(email.trim().toLowerCase());
       setSent(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong');
+      setError(e instanceof Error ? e.message : t('auth.password_reset_failed'));
     } finally {
       setIsLoading(false);
     }
@@ -53,12 +55,9 @@ export function ForgotPasswordScreen({ onBack }: Props) {
           { paddingTop: insets.top, paddingBottom: insets.bottom + spacing.lg },
         ]}
       >
-        <Text style={styles.sentIcon}>📬</Text>
-        <Text style={styles.sentTitle}>Check your inbox</Text>
-        <Text style={styles.sentText}>
-          If an account exists for {email}, you'll receive instructions to reset your password.
-        </Text>
-        <Button label="Back to sign in" onPress={onBack} variant="outline" />
+        <Text style={styles.sentTitle}>{t('auth.check_your_inbox')}</Text>
+        <Text style={styles.sentText}>{t('auth.password_reset_instructions')}</Text>
+        <Button label={t('auth.back_to_sign_in')} onPress={onBack} variant="outline" />
       </View>
     );
   }
@@ -80,29 +79,27 @@ export function ForgotPasswordScreen({ onBack }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={styles.backText}>← {t('auth.back')}</Text>
         </TouchableOpacity>
 
         <View style={styles.header}>
           <Text style={styles.icon}>🔑</Text>
-          <Text style={styles.title}>Reset password</Text>
-          <Text style={styles.subtitle}>
-            Enter your email and we'll send you a reset link.
-          </Text>
+          <Text style={styles.title}>{t('auth.reset_password')}</Text>
+          <Text style={styles.subtitle}>{t('auth.enter_email_reset_link')}</Text>
         </View>
 
         <View style={styles.form}>
           <ErrorBanner message={error} />
           <TextInput
-            label="Email"
-            placeholder="you@example.com"
+            label={t('auth.email')}
+            placeholder={t('auth.email_placeholder')}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
             error={emailError}
           />
-          <Button label="Send reset link" onPress={handleSubmit} loading={isLoading} />
+          <Button label={t('auth.send_reset_link')} onPress={handleSubmit} loading={isLoading} />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -21,13 +21,13 @@ export function useFamilies() {
 
   const create = useCallback(async (dto: CreateFamilyDto): Promise<Family> => {
     const family = await familiesApi.create(dto);
-    setFamilies(prev => [family, ...prev]);
+    setFamilies((prev) => [family, ...prev]);
     return family;
   }, []);
 
   const remove = useCallback(async (id: string) => {
     await familiesApi.delete(id);
-    setFamilies(prev => prev.filter(f => f.id !== id));
+    setFamilies((prev) => prev.filter((f) => f.id !== id));
   }, []);
 
   return { families, isLoading, error, load, create, remove };

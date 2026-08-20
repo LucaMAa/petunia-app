@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View, Text, Modal, StyleSheet, FlatList,
-  TouchableOpacity, ActivityIndicator,
+  View,
+  Text,
+  Modal,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { Family } from '../../types';
 import { familiesApi } from '../../api/families';
@@ -27,9 +32,7 @@ export function FamilyPickerModal({ visible, petId, onSelect, onClose }: Props) 
     setIsLoading(true);
     try {
       const all = await familiesApi.list();
-      const filtered = (all ?? []).filter(
-        f => f.pets?.some(p => p.id === petId)
-      );
+      const filtered = (all ?? []).filter((f) => f.pets?.some((p) => p.id === petId));
       setFamilies(filtered);
     } catch {
       setFamilies([]);
@@ -53,9 +56,7 @@ export function FamilyPickerModal({ visible, petId, onSelect, onClose }: Props) 
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.subtitle}>
-          In quale famiglia vuoi gestire i promemoria?
-        </Text>
+        <Text style={styles.subtitle}>In quale famiglia vuoi gestire i promemoria?</Text>
 
         {isLoading ? (
           <View style={styles.center}>
@@ -65,17 +66,13 @@ export function FamilyPickerModal({ visible, petId, onSelect, onClose }: Props) 
           <View style={styles.center}>
             <Text style={styles.emptyIcon}>🏠</Text>
             <Text style={styles.emptyTitle}>Nessuna famiglia</Text>
-            <Text style={styles.emptyText}>
-              Questo animale non è assegnato ad alcuna famiglia.
-            </Text>
-            <Text style={styles.emptyHint}>
-              Vai in Famiglia, assegna l&apos;animale e riprova.
-            </Text>
+            <Text style={styles.emptyText}>Questo animale non è assegnato ad alcuna famiglia.</Text>
+            <Text style={styles.emptyHint}>Vai in Famiglia, assegna l&apos;animale e riprova.</Text>
           </View>
         ) : (
           <FlatList
             data={families}
-            keyExtractor={f => f.id}
+            keyExtractor={(f) => f.id}
             contentContainerStyle={styles.list}
             renderItem={({ item }) => (
               <TouchableOpacity
@@ -88,9 +85,7 @@ export function FamilyPickerModal({ visible, petId, onSelect, onClose }: Props) 
                 </View>
                 <View style={styles.info}>
                   <Text style={styles.familyName}>{item.name}</Text>
-                  <Text style={styles.familyMeta}>
-                    {`${item.members?.length ?? 0} membri`}
-                  </Text>
+                  <Text style={styles.familyMeta}>{`${item.members?.length ?? 0} membri`}</Text>
                 </View>
                 <Text style={styles.arrow}>›</Text>
               </TouchableOpacity>
@@ -114,7 +109,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  title:    { ...typography.h2 },
+  title: { ...typography.h2 },
   closeBtn: {
     width: 32,
     height: 32,
@@ -155,10 +150,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   houseEmoji: { fontSize: 26 },
-  info:       { flex: 1 },
+  info: { flex: 1 },
   familyName: { ...typography.h4 },
   familyMeta: { ...typography.caption, color: colors.textMuted },
-  arrow:      { fontSize: 22, color: colors.textMuted, fontWeight: '300' },
+  arrow: { fontSize: 22, color: colors.textMuted, fontWeight: '300' },
 
   center: {
     flex: 1,
@@ -167,9 +162,9 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.md,
   },
-  emptyIcon:  { fontSize: 56 },
+  emptyIcon: { fontSize: 56 },
   emptyTitle: { ...typography.h3, textAlign: 'center' },
-  emptyText:  {
+  emptyText: {
     ...typography.bodySmall,
     color: colors.textSecondary,
     textAlign: 'center',

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -10,21 +10,16 @@ import {
   StyleSheet,
   Text,
   View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as DocumentPicker from "expo-document-picker";
-import { getAuthenticatedFileUrl } from "../../api/client";
-import { uploadApi } from "../../api/uploads";
-import { Button, Card, ErrorBanner } from "../../components/ui";
-import { useAlert } from "../../components/ui/AlertContext";
-import { useLocalization } from "../../context/LocalizationContext";
-import {
-  colors,
-  layout,
-  radius,
-  spacing,
-  typography,
-} from "../../styles/theme";
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as DocumentPicker from 'expo-document-picker';
+import { getAuthenticatedFileUrl } from '../../api/client';
+import { uploadApi } from '../../api/uploads';
+import { Avatar, Button, Card, ErrorBanner } from '../../components/ui';
+import { useAlert } from '../../components/ui/AlertContext';
+import { useLocalization } from '../../context/LocalizationContext';
+import { useAuthenticatedImageSource } from '../../hooks/useAuthenticatedUrls';
+import { colors, layout, radius, spacing, typography } from '../../styles/theme';
 
 type DocumentRecord = {
   id: string;
@@ -35,13 +30,7 @@ type DocumentRecord = {
   created_at?: string;
 };
 
-export function PetDocumentsScreen({
-  petId,
-  onBack,
-}: {
-  petId: string;
-  onBack: () => void;
-}) {
+export function PetDocumentsScreen({ petId, onBack }: { petId: string; onBack: () => void }) {
   const insets = useSafeAreaInsets();
   const { t, formatDate } = useLocalization();
   const { showAlert } = useAlert();
@@ -51,6 +40,7 @@ export function PetDocumentsScreen({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const previewSource = useAuthenticatedImageSource(preview ?? undefined);
   const successAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -80,14 +70,12 @@ export function PetDocumentsScreen({
     setLoading(true);
     setError(null);
     try {
-      setDocs(
-        ((await uploadApi.listPetDocuments(petId)) ?? []) as DocumentRecord[],
-      );
+      setDocs(((await uploadApi.listPetDocuments(petId)) ?? []) as DocumentRecord[]);
     } catch {
       setError(
         t(
-          "load_docs_failed",
-          "Non siamo riusciti a caricare i documenti. I tuoi dati non sono stati modificati.",
+          'load_docs_failed',
+          'Non siamo riusciti a caricare i documenti. I tuoi dati non sono stati modificati.',
         ),
       );
     } finally {
@@ -98,46 +86,39 @@ export function PetDocumentsScreen({
     load();
   }, [petId]);
 
-  const fileUrl = async (doc: DocumentRecord) =>
-    doc.url ?? (await getAuthenticatedFileUrl(doc.id));
+  const fileUrl = async (doc: DocumentRecord) => doc.url ?? (await getAuthenticatedFileUrl(doc.id));
   const handleOpen = async (doc: DocumentRecord) => {
     try {
+      if (doc.mime_type?.startsWith('image/')) {
+        setPreview(doc.url ?? doc.id ?? null);
+        return;
+      }
+
       const url = await fileUrl(doc);
-      if (doc.mime_type?.startsWith("image/")) setPreview(url);
-      else await Linking.openURL(url);
+      await Linking.openURL(url);
     } catch {
-      showAlert(
-        t("open_failed", "Impossibile aprire il file. Riprova più tardi."),
-        { type: "error" },
-      );
+      showAlert(t('open_failed', 'Impossibile aprire il file. Riprova più tardi.'), {
+        type: 'error',
+      });
     }
   };
   const handleDelete = (doc: DocumentRecord) =>
     Alert.alert(
-      t("delete", "Elimina documento"),
-      t(
-        "delete_document_message",
-        "Il documento verrà eliminato definitivamente.",
-      ),
+      t('delete', 'Elimina documento'),
+      t('delete_document_message', 'Il documento verrà eliminato definitivamente.'),
       [
-        { text: t("cancel", "Annulla"), style: "cancel" },
+        { text: t('cancel', 'Annulla'), style: 'cancel' },
         {
-          text: t("delete", "Elimina"),
-          style: "destructive",
+          text: t('delete', 'Elimina'),
+          style: 'destructive',
           onPress: async () => {
             try {
               await uploadApi.deleteFile(doc.id);
-              setDocs((current) =>
-                current.filter((item) => item.id !== doc.id),
-              );
+              setDocs((current) => current.filter((item) => item.id !== doc.id));
             } catch {
-                showAlert(
-                  t(
-                    "delete_failed",
-                    "Impossibile eliminare il file. Riprova più tardi.",
-                  ),
-                  { type: "error" },
-                );
+              showAlert(t('delete_failed', 'Impossibile eliminare il file. Riprova più tardi.'), {
+                type: 'error',
+              });
             }
           },
         },
@@ -148,7 +129,7 @@ export function PetDocumentsScreen({
     setSuccess(null);
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ["image/*", "application/pdf"],
+        type: ['image/*', 'application/pdf'],
         copyToCacheDirectory: true,
       });
       if (result.canceled || !result.assets?.[0]) return;
@@ -157,24 +138,16 @@ export function PetDocumentsScreen({
         petId,
         asset.uri,
         asset.name ?? `documento_${Date.now()}`,
-        asset.mimeType ?? "application/octet-stream",
+        asset.mimeType ?? 'application/octet-stream',
       );
       setDocs((current) => [doc as DocumentRecord, ...current]);
-      setSuccess(
-        t(
-          "upload_success",
-          "Il documento è ora disponibile nel profilo dell’animale.",
-        ),
-      );
+      setSuccess(t('upload_success', 'Il documento è ora disponibile nel profilo dell’animale.'));
     } catch (cause) {
       showAlert(
         cause instanceof Error
           ? cause.message
-          : t(
-              "upload_failed",
-              "Impossibile caricare il documento. Riprova più tardi.",
-            ),
-        { type: "error" },
+          : t('upload_failed', 'Impossibile caricare il documento. Riprova più tardi.'),
+        { type: 'error' },
       );
     } finally {
       setUploading(false);
@@ -182,22 +155,18 @@ export function PetDocumentsScreen({
   };
 
   const renderDocument = ({ item }: { item: DocumentRecord }) => {
-    const isImage = item.mime_type?.startsWith("image/");
-    const type = isImage
-      ? "IMMAGINE"
-      : item.mime_type?.includes("pdf")
-        ? "PDF"
-        : "FILE";
+    const isImage = item.mime_type?.startsWith('image/');
+    const type = isImage ? 'IMMAGINE' : item.mime_type?.includes('pdf') ? 'PDF' : 'FILE';
     return (
       <Card style={styles.document} padding="md">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Apri ${item.original_name ?? "documento"}`}
+          accessibilityLabel={`Apri ${item.original_name ?? 'documento'}`}
           onPress={() => handleOpen(item)}
           style={styles.documentMain}
         >
           {isImage && item.url ? (
-            <Image source={{ uri: item.url }} style={styles.thumbnail} />
+            <Avatar uri={item.id} size={52} style={styles.thumbnail} />
           ) : (
             <View style={styles.fileMark}>
               <Text style={styles.fileMarkText}>{type}</Text>
@@ -205,30 +174,28 @@ export function PetDocumentsScreen({
           )}
           <View style={styles.documentCopy}>
             <Text numberOfLines={1} style={styles.documentName}>
-              {item.original_name ?? t("document", "Documento")}
+              {item.original_name ?? t('document', 'Documento')}
             </Text>
             <Text style={styles.documentMeta}>
               {[
                 item.created_at ? formatDate(item.created_at) : null,
-                item.size
-                  ? `${Math.max(1, Math.round(item.size / 1024))} KB`
-                  : null,
+                item.size ? `${Math.max(1, Math.round(item.size / 1024))} KB` : null,
               ]
                 .filter(Boolean)
-                .join(" · ") || type}
+                .join(' · ') || type}
             </Text>
           </View>
         </Pressable>
         <View style={styles.actions}>
           <Button
-            label={t("open", "Apri")}
+            label={t('open', 'Apri')}
             onPress={() => handleOpen(item)}
             variant="ghost"
             fullWidth={false}
             size="sm"
           />
           <Button
-            label={t("delete", "Elimina")}
+            label={t('delete', 'Elimina')}
             onPress={() => handleDelete(item)}
             variant="ghost"
             fullWidth={false}
@@ -244,13 +211,13 @@ export function PetDocumentsScreen({
     <View style={[styles.safe, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Button
-          label={t("back", "Indietro")}
+          label={t('back', 'Indietro')}
           onPress={onBack}
           variant="ghost"
           fullWidth={false}
           size="sm"
         />
-        <Text style={styles.headerTitle}>{t("documents", "Documenti")}</Text>
+        <Text style={styles.headerTitle}>{t('documents', 'Documenti')}</Text>
         <View style={styles.headerSpacer} />
       </View>
       <FlatList
@@ -266,20 +233,16 @@ export function PetDocumentsScreen({
         ListHeaderComponent={
           <View style={styles.intro}>
             <Text style={styles.overline}>Archivio sanitario</Text>
-            <Text style={styles.title}>
-              {t("documents_title", "Documenti e certificati")}
-            </Text>
+            <Text style={styles.title}>{t('documents_title', 'Documenti e certificati')}</Text>
             <Text style={styles.lead}>
               {t(
-                "documents_lead",
-                "Conserva referti, certificati e documenti importanti in un unico posto sicuro.",
+                'documents_lead',
+                'Conserva referti, certificati e documenti importanti in un unico posto sicuro.',
               )}
             </Text>
             <Button
               label={
-                uploading
-                  ? t("uploading", "Caricamento…")
-                  : t("add_document", "Aggiungi documento")
+                uploading ? t('uploading', 'Caricamento…') : t('add_document', 'Aggiungi documento')
               }
               onPress={upload}
               loading={uploading}
@@ -319,7 +282,7 @@ export function PetDocumentsScreen({
             <View style={styles.feedback}>
               <ErrorBanner message={error} />
               <Button
-                label={t("retry", "Riprova")}
+                label={t('retry', 'Riprova')}
                 onPress={load}
                 variant="outline"
                 fullWidth={false}
@@ -338,13 +301,11 @@ export function PetDocumentsScreen({
         onRequestClose={() => setPreview(null)}
       >
         <View style={styles.previewOverlay}>
-          <Image
-            source={{ uri: preview ?? "" }}
-            style={styles.previewImage}
-            resizeMode="contain"
-          />
+          {previewSource ? (
+            <Image source={previewSource} style={styles.previewImage} resizeMode="contain" />
+          ) : null}
           <Button
-            label={t("close", "Chiudi")}
+            label={t('close', 'Chiudi')}
             onPress={() => setPreview(null)}
             variant="secondary"
             fullWidth={false}
@@ -360,8 +321,7 @@ function EmptyDocuments() {
     <View style={styles.empty}>
       <Text style={styles.emptyTitle}>Nessun documento salvato</Text>
       <Text style={styles.emptyText}>
-        Aggiungi certificati, referti o prescrizioni per averli sempre a portata
-        di mano.
+        Aggiungi certificati, referti o prescrizioni per averli sempre a portata di mano.
       </Text>
     </View>
   );
@@ -381,9 +341,9 @@ const styles = StyleSheet.create({
   header: {
     height: layout.headerHeight,
     paddingHorizontal: spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -395,10 +355,10 @@ const styles = StyleSheet.create({
   overline: { ...typography.overline, marginBottom: spacing.xs },
   title: { ...typography.h1, marginBottom: spacing.sm },
   lead: { ...typography.body, color: colors.textSecondary, maxWidth: 480 },
-  uploadButton: { alignSelf: "flex-start", marginTop: spacing.lg },
+  uploadButton: { alignSelf: 'flex-start', marginTop: spacing.lg },
   successBanner: {
-    flexDirection: "row",
-    overflow: "hidden",
+    flexDirection: 'row',
+    overflow: 'hidden',
     marginTop: spacing.md,
     borderWidth: 1,
     borderColor: colors.success,
@@ -413,7 +373,7 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   document: { gap: spacing.md },
-  documentMain: { flexDirection: "row", alignItems: "center", gap: spacing.md },
+  documentMain: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   thumbnail: {
     width: 48,
     height: 48,
@@ -425,18 +385,18 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: radius.sm,
     backgroundColor: colors.infoLight,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   fileMarkText: { ...typography.label, fontSize: 10, color: colors.info },
   documentCopy: { flex: 1, minWidth: 0 },
   documentName: { ...typography.bodyMedium },
   documentMeta: { ...typography.caption, marginTop: spacing.xxs },
-  actions: { flexDirection: "row", alignSelf: "flex-end", gap: spacing.sm },
+  actions: { flexDirection: 'row', alignSelf: 'flex-end', gap: spacing.sm },
   deleteText: { color: colors.error },
-  feedback: { alignItems: "flex-start", gap: spacing.md },
+  feedback: { alignItems: 'flex-start', gap: spacing.md },
   empty: {
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
     gap: spacing.sm,
     paddingTop: spacing.xl,
     borderTopWidth: 1,
@@ -457,10 +417,10 @@ const styles = StyleSheet.create({
   previewOverlay: {
     flex: 1,
     padding: spacing.xl,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.lg,
     backgroundColor: colors.overlay,
   },
-  previewImage: { width: "100%", flex: 1 },
+  previewImage: { width: '100%', flex: 1 },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -7,14 +7,8 @@ import {
   TextInputProps as RNTextInputProps,
   View,
   ViewStyle,
-} from "react-native";
-import {
-  colors,
-  layout,
-  radius,
-  spacing,
-  typography,
-} from "../../styles/theme";
+} from 'react-native';
+import { colors, layout, radius, spacing, typography } from '../../styles/theme';
 
 interface TextInputProps extends RNTextInputProps {
   label?: string;
@@ -44,11 +38,11 @@ export function TextInput({
 }: TextInputProps) {
   const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(false);
-  const handleFocus: RNTextInputProps["onFocus"] = (event) => {
+  const handleFocus: RNTextInputProps['onFocus'] = (event) => {
     setFocused(true);
     onFocus?.(event);
   };
-  const handleBlur: RNTextInputProps["onBlur"] = (event) => {
+  const handleBlur: RNTextInputProps['onBlur'] = (event) => {
     setFocused(false);
     onBlur?.(event);
   };
@@ -77,7 +71,7 @@ export function TextInput({
           onBlur={handleBlur}
           placeholderTextColor={colors.textMuted}
           secureTextEntry={isPassword && !visible}
-          autoCapitalize={isPassword ? "none" : rest.autoCapitalize}
+          autoCapitalize={isPassword ? 'none' : rest.autoCapitalize}
           autoCorrect={isPassword ? false : rest.autoCorrect}
           accessibilityLabel={label}
           accessibilityHint={error ?? hint}
@@ -85,16 +79,12 @@ export function TextInput({
         {isPassword ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={
-              visible ? "Nascondi password" : "Mostra password"
-            }
+            accessibilityLabel={visible ? 'Nascondi password' : 'Mostra password'}
             hitSlop={8}
             onPress={() => setVisible((value) => !value)}
             style={styles.passwordToggle}
           >
-            <Text style={styles.passwordToggleText}>
-              {visible ? "Nascondi" : "Mostra"}
-            </Text>
+            <Text style={styles.passwordToggleText}>{visible ? 'Nascondi' : 'Mostra'}</Text>
           </Pressable>
         ) : rightElement ? (
           <View style={styles.right}>{rightElement}</View>
@@ -117,8 +107,8 @@ const styles = StyleSheet.create({
   labelFocused: { color: colors.primary },
   required: { color: colors.error },
   inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     height: layout.inputHeight,
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
@@ -135,7 +125,7 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.6, backgroundColor: colors.surfaceMuted },
   input: {
     flex: 1,
-    height: "100%",
+    height: '100%',
     ...typography.body,
     paddingVertical: 0,
     color: colors.text,

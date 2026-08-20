@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet,
-  TouchableOpacity, ActivityIndicator, RefreshControl, Alert,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PendingAlert } from '../../hooks/usePendingAlerts';
@@ -12,14 +18,14 @@ import { useLocalization } from '../../context/LocalizationContext';
 
 const TYPE_META: Record<string, { emoji: string; label: string; bg: string; color: string }> = {
   medicine: { emoji: '💊', label: 'Medicina', bg: '#EAF2F8', color: '#2B5F7A' },
-  food:     { emoji: '🍽',  label: 'Cibo',     bg: '#EAF5EE', color: '#2E5E3A' },
-  other:    { emoji: '🔔', label: 'Altro',    bg: '#F5EAE2', color: '#7A3D22' },
+  food: { emoji: '🍽', label: 'Cibo', bg: '#EAF5EE', color: '#2E5E3A' },
+  other: { emoji: '🔔', label: 'Altro', bg: '#F5EAE2', color: '#7A3D22' },
 };
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60_000);
-  if (m < 1)  return 'adesso';
+  if (m < 1) return 'adesso';
   if (m < 60) return `${m} min fa`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h fa`;
@@ -48,7 +54,7 @@ export function PendingAlertsScreen({ alerts, isLoading, onBack, onAck, onReload
       await remindersApi.ack(alert.reminder_id, alert.occurrence_key);
       onAck(alert.reminder_id, alert.occurrence_key);
     } catch (e) {
-        setError(e instanceof Error ? e.message : t('error_ack','Errore durante la conferma'));
+      setError(e instanceof Error ? e.message : t('error_ack', 'Errore durante la conferma'));
     } finally {
       setAckingId(null);
     }
@@ -56,54 +62,49 @@ export function PendingAlertsScreen({ alerts, isLoading, onBack, onAck, onReload
 
   function confirmAckAll() {
     Alert.alert(
-      t('confirm_ack_all_title','Segna tutti come fatti?'),
-      t('confirm_ack_all_msg',`Confermi ${alerts.length} alert in sospeso?`),
+      t('confirm_ack_all_title', 'Segna tutti come fatti?'),
+      t('confirm_ack_all_msg', `Confermi ${alerts.length} alert in sospeso?`),
       [
-        { text: t('cancel','Annulla'), style: 'cancel' },
+        { text: t('cancel', 'Annulla'), style: 'cancel' },
         {
-          text: t('confirm_all','Conferma tutti'),
+          text: t('confirm_all', 'Conferma tutti'),
           onPress: async () => {
             for (const a of alerts) {
               try {
                 await remindersApi.ack(a.reminder_id, a.occurrence_key);
                 onAck(a.reminder_id, a.occurrence_key);
-              } catch { /* continue */ }
+              } catch {}
             }
           },
         },
-      ]
+      ],
     );
   }
 
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
-      {/* NAV */}
       <View style={styles.nav}>
         <TouchableOpacity onPress={onBack} style={styles.navBtn}>
           <Text style={styles.navBack}>‹</Text>
-          <Text style={styles.navLabel}>{t('back','Indietro')}</Text>
+          <Text style={styles.navLabel}>{t('back')}</Text>
         </TouchableOpacity>
         {alerts.length > 1 && (
           <TouchableOpacity onPress={confirmAckAll} style={styles.ackAllBtn}>
-            <Text style={styles.ackAllText}>{t('ack_all','✓ Tutti fatti')}</Text>
+            <Text style={styles.ackAllText}>{t('ack_all')}</Text>
           </TouchableOpacity>
         )}
       </View>
-
-      {/* HEADER */}
       <View style={styles.header}>
-        <Text style={styles.overline}>{t('not_completed','Non completati')}</Text>
+        <Text style={styles.overline}>{t('not_completed')}</Text>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>{t('pending_alerts_title','Alert in sospeso')}</Text>
+          <Text style={styles.title}>{t('pending_alerts_title')}</Text>
           {alerts.length > 0 && (
             <View style={styles.countBadge}>
               <Text style={styles.countText}>{alerts.length}</Text>
             </View>
           )}
         </View>
-        <Text style={styles.subtitle}>
-          {t('pending_alerts_subtitle','Questi promemoria sono scattati ma nessuno ha ancora segnato come fatto.')}
-        </Text>
+        <Text style={styles.subtitle}>{t('pending_alerts_subtitle')}</Text>
       </View>
 
       <ScrollView
@@ -127,16 +128,11 @@ export function PendingAlertsScreen({ alerts, isLoading, onBack, onAck, onReload
 
         {alerts.length === 0 && !isLoading ? (
           <View style={styles.empty}>
-            <View style={styles.emptyIconBox}>
-              <Text style={styles.emptyIcon}>✅</Text>
-            </View>
-            <Text style={styles.emptyTitle}>{t('all_good','Tutto a posto!')}</Text>
-            <Text style={styles.emptyText}>
-              {t('no_pending_24h','Nessun promemoria in sospeso nelle ultime 24 ore.')}
-            </Text>
+            <Text style={styles.emptyTitle}>{t('all_good')}</Text>
+            <Text style={styles.emptyText}>{t('no_pending_24h')}</Text>
           </View>
         ) : (
-          alerts.map(alert => {
+          alerts.map((alert) => {
             const rem = alert.reminder;
             const meta = TYPE_META[rem?.type ?? 'other'] ?? TYPE_META.other;
             const key = `${alert.reminder_id}_${alert.occurrence_key}`;
@@ -144,37 +140,27 @@ export function PendingAlertsScreen({ alerts, isLoading, onBack, onAck, onReload
 
             return (
               <View key={alert.id} style={styles.card}>
-                {/* Urgency accent — red because it was missed */}
                 <View style={[styles.accentBar, { backgroundColor: colors.error }]} />
 
                 <View style={styles.cardBody}>
-                  {/* Top row */}
                   <View style={styles.cardTop}>
                     <View style={[styles.typeBadge, { backgroundColor: meta.bg }]}>
                       <Text style={styles.typeEmoji}>{meta.emoji}</Text>
-                      <Text style={[styles.typeLabel, { color: meta.color }]}>
-                        {meta.label}
-                      </Text>
+                      <Text style={[styles.typeLabel, { color: meta.color }]}>{meta.label}</Text>
                     </View>
                     <View style={styles.missedTag}>
-                      <Text style={styles.missedTagText}>{t('not_done_tag','⚠ Non fatto')}</Text>
+                      <Text style={styles.missedTagText}>{t('not_done_tag', '⚠ Non fatto')}</Text>
                     </View>
                   </View>
-
-                  {/* Title */}
                   <Text style={styles.cardTitle}>{rem?.title ?? '—'}</Text>
-
-                  {/* Notes */}
                   {!!rem?.notes && (
-                    <Text style={styles.cardNotes} numberOfLines={2}>{rem.notes}</Text>
+                    <Text style={styles.cardNotes} numberOfLines={2}>
+                      {rem.notes}
+                    </Text>
                   )}
-
-                  {/* Meta */}
                   <View style={styles.metaRow}>
                     <Text style={styles.metaIcon}>🕐</Text>
-                    <Text style={styles.metaText}>
-                      Scattato {timeAgo(alert.fired_at)}
-                    </Text>
+                    <Text style={styles.metaText}>Scattato {timeAgo(alert.fired_at)}</Text>
                   </View>
                   {rem?.pet && (
                     <View style={styles.metaRow}>
@@ -182,17 +168,16 @@ export function PendingAlertsScreen({ alerts, isLoading, onBack, onAck, onReload
                       <Text style={styles.metaText}>{rem.pet.name}</Text>
                     </View>
                   )}
-
-                  {/* Action */}
                   <TouchableOpacity
                     style={[styles.ackBtn, isAcking && { opacity: 0.6 }]}
                     onPress={() => handleAck(alert)}
                     disabled={isAcking}
                   >
-                    {isAcking
-                      ? <ActivityIndicator size="small" color={colors.textOnPrimary} />
-                      : <Text style={styles.ackBtnText}>✓ Segna come fatto</Text>
-                    }
+                    {isAcking ? (
+                      <ActivityIndicator size="small" color={colors.textOnPrimary} />
+                    ) : (
+                      <Text style={styles.ackBtnText}>✓ Segna come fatto</Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -205,7 +190,7 @@ export function PendingAlertsScreen({ alerts, isLoading, onBack, onAck, onReload
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: colors.background },
 
   nav: {
     flexDirection: 'row',
@@ -215,9 +200,9 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
   },
-  navBtn:    { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  navBack:   { fontSize: 22, color: colors.primary },
-  navLabel:  { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
+  navBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  navBack: { fontSize: 22, color: colors.primary },
+  navLabel: { ...typography.bodySmall, color: colors.primary, fontWeight: '600' },
   ackAllBtn: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -231,20 +216,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     gap: spacing.xs,
   },
-  overline:  { ...typography.overline, color: colors.error },
-  titleRow:  { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  title:     { ...typography.h1 },
-  countBadge:{
+  overline: { ...typography.overline, color: colors.error },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  title: { ...typography.h1 },
+  countBadge: {
     backgroundColor: colors.error,
-    minWidth: 26, height: 26,
+    minWidth: 26,
+    height: 26,
     borderRadius: 99,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: 6,
   },
   countText: { color: '#fff', fontSize: 13, fontWeight: '800' },
-  subtitle:  { ...typography.bodySmall, color: colors.textSecondary },
+  subtitle: { ...typography.bodySmall, color: colors.textSecondary },
 
-  list:      { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
   listEmpty: { flexGrow: 1 },
 
   card: {
@@ -257,7 +244,7 @@ const styles = StyleSheet.create({
     ...shadow.sm,
   },
   accentBar: { width: 4 },
-  cardBody:  { flex: 1, padding: spacing.md, gap: spacing.xs },
+  cardBody: { flex: 1, padding: spacing.md, gap: spacing.xs },
 
   cardTop: {
     flexDirection: 'row',
@@ -288,7 +275,7 @@ const styles = StyleSheet.create({
   cardTitle: { ...typography.h4 },
   cardNotes: { ...typography.bodySmall, color: colors.textSecondary },
 
-  metaRow:  { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 2 },
   metaIcon: { fontSize: 12 },
   metaText: { ...typography.caption, color: colors.textSecondary, fontWeight: '500' },
 
@@ -311,13 +298,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
   },
   emptyIconBox: {
-    width: 100, height: 100,
+    width: 100,
+    height: 100,
     borderRadius: radius.xxl,
     backgroundColor: colors.successLight,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: colors.success + '40',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.success + '40',
   },
-  emptyIcon:  { fontSize: 48 },
+  emptyIcon: { fontSize: 48 },
   emptyTitle: { ...typography.h2, textAlign: 'center' },
-  emptyText:  { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
+  emptyText: { ...typography.body, color: colors.textSecondary, textAlign: 'center' },
 });
